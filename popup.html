@@ -6,26 +6,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Doc_HEMA Team Extension</title>
   <style>
+    /* ==========================================
+       CYBERSECURITY THEME - Doc_HEMA Team
+       ========================================== */
+
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Orbitron:wght@400;700&display=swap');
+
+    :root {
+      --cyber-green: #00FF41;
+      --cyber-green-dark: #00CC33;
+      --cyber-blue: #00D4FF;
+      --cyber-purple: #9D00FF;
+      --cyber-red: #FF0040;
+      --bg-dark: #0a0a0a;
+      --bg-card: #0d1117;
+      --bg-terminal: #1a1a2e;
+      --text-primary: #00FF41;
+      --text-secondary: #7fba00;
+      --border-glow: 0 0 10px rgba(0, 255, 65, 0.5);
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       width: 400px !important;
       min-width: 400px !important;
       max-width: 400px !important;
       height: 600px !important;
       min-height: 600px !important;
       max-height: 600px !important;
-      background: linear-gradient(135deg, #23272f 0%, #1a1d23 100%);
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-dark);
+      color: var(--cyber-green);
+      font-family: 'Fira Code', 'Courier New', monospace;
       overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      position: relative;
+    }
+
+    /* Matrix Rain Background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(180deg, transparent 0%, rgba(0, 255, 65, 0.03) 50%, transparent 100%),
+        repeating-linear-gradient(0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 255, 65, 0.03) 2px,
+          rgba(0, 255, 65, 0.03) 4px);
+      pointer-events: none;
+      z-index: 0;
+      animation: scanlines 8s linear infinite;
+    }
+
+    @keyframes scanlines {
+      0% {
+        background-position: 0 0;
+      }
+
+      100% {
+        background-position: 0 100%;
+      }
     }
 
     .container {
@@ -44,6 +93,8 @@
       box-sizing: border-box;
       overflow-y: auto;
       overflow-x: hidden;
+      position: relative;
+      z-index: 1;
     }
 
     .main-interface,
@@ -61,56 +112,138 @@
       margin: 0 auto 15px auto;
     }
 
-    input, select, button {
+    input,
+    select,
+    button {
       width: 100%;
       box-sizing: border-box;
       min-width: 0;
+      font-family: 'Fira Code', monospace;
     }
 
+    /* Glitch Header */
     .header {
       text-align: center;
       margin-bottom: 10px;
-      padding: 10px;
-      background: rgba(255, 215, 0, 0.1);
-      border-radius: 12px;
-      border: 2px solid #FFD700;
+      padding: 15px;
+      background: linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
+      border-radius: 8px;
+      border: 1px solid var(--cyber-green);
+      box-shadow: var(--border-glow), inset 0 0 20px rgba(0, 255, 65, 0.1);
       position: relative;
-      z-index: 1;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.2), transparent);
+      animation: scan 3s linear infinite;
+    }
+
+    @keyframes scan {
+      0% {
+        left: -100%;
+      }
+
+      100% {
+        left: 100%;
+      }
     }
 
     .header h1 {
-      color: #FFD700;
-      font-size: 1.8em;
+      color: var(--cyber-green);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6em;
       margin-bottom: 5px;
       font-weight: bold;
+      text-shadow: 0 0 10px var(--cyber-green), 0 0 20px var(--cyber-green), 0 0 30px var(--cyber-green);
+      animation: glitch 2s infinite;
+      letter-spacing: 2px;
+    }
+
+    @keyframes glitch {
+
+      0%,
+      90%,
+      100% {
+        text-shadow: 0 0 10px var(--cyber-green), 0 0 20px var(--cyber-green);
+      }
+
+      92% {
+        text-shadow: -2px 0 var(--cyber-red), 2px 0 var(--cyber-blue);
+        transform: translateX(-2px);
+      }
+
+      94% {
+        text-shadow: 2px 0 var(--cyber-red), -2px 0 var(--cyber-blue);
+        transform: translateX(2px);
+      }
+
+      96% {
+        text-shadow: 0 0 10px var(--cyber-green);
+        transform: translateX(0);
+      }
     }
 
     .version-badge {
-      background: linear-gradient(90deg, #FFD700 0%, #23272f 100%);
-      color: #23272f;
+      background: var(--cyber-green);
+      color: var(--bg-dark);
       padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.8em;
+      border-radius: 4px;
+      font-size: 0.75em;
       font-weight: bold;
       display: inline-block;
       margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 5px var(--cyber-green);
+      }
+
+      50% {
+        box-shadow: 0 0 20px var(--cyber-green), 0 0 30px var(--cyber-green);
+      }
     }
 
     .divider {
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #FFD700, transparent);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyber-green), transparent);
       margin: 15px 0;
+      box-shadow: 0 0 10px var(--cyber-green);
     }
 
-    /* Login Form Styles */
+    /* Login Form - Terminal Style */
     .login-form {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--bg-terminal);
       padding: 20px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 8px;
+      border: 1px solid var(--cyber-green);
+      box-shadow: var(--border-glow);
       margin-bottom: 20px;
       width: 100%;
-      text-align: center;
+      position: relative;
+    }
+
+    .login-form::before {
+      content: '> SECURE_LOGIN.exe';
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      background: var(--bg-terminal);
+      padding: 0 8px;
+      font-size: 0.7em;
+      color: var(--cyber-green);
     }
 
     .form-group {
@@ -120,70 +253,115 @@
     .form-group label {
       display: block;
       margin-bottom: 5px;
-      color: #FFD700;
+      color: var(--cyber-green);
       font-weight: bold;
-      font-size: 0.9em;
+      font-size: 0.85em;
+    }
+
+    .form-group label::before {
+      content: '$ ';
+      color: var(--cyber-blue);
     }
 
     .form-group input {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #FFD700;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      padding: 12px;
+      border: 1px solid var(--cyber-green);
+      border-radius: 4px;
+      background: rgba(0, 255, 65, 0.05);
+      color: var(--cyber-green);
       font-size: 14px;
+      transition: all 0.3s;
     }
 
     .form-group input:focus {
       outline: none;
-      border-color: #FFC700;
-      box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+      border-color: var(--cyber-blue);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.3), inset 0 0 10px rgba(0, 255, 65, 0.1);
     }
 
+    .form-group input::placeholder {
+      color: rgba(0, 255, 65, 0.4);
+    }
+
+    /* Buttons */
     .btn {
       width: 100%;
       padding: 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 4px;
       cursor: pointer;
       font-weight: bold;
       font-size: 14px;
       transition: all 0.3s ease;
       margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
     }
 
     .btn-primary {
-      background: #FFD700;
-      color: #23272f;
+      background: linear-gradient(135deg, var(--cyber-green) 0%, var(--cyber-green-dark) 100%);
+      color: var(--bg-dark);
+      border: 1px solid var(--cyber-green);
+      box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
     }
 
     .btn-primary:hover {
-      background: #FFC700;
+      box-shadow: 0 0 20px var(--cyber-green), 0 0 40px var(--cyber-green);
       transform: translateY(-2px);
     }
 
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #FFD700;
-      border: 1px solid #FFD700;
+      background: transparent;
+      color: var(--cyber-green);
+      border: 1px solid var(--cyber-green);
     }
 
     .btn-secondary:hover {
-      background: rgba(255, 215, 0, 0.1);
+      background: rgba(0, 255, 65, 0.1);
+      box-shadow: var(--border-glow);
     }
 
     .btn-danger {
-      background: #dc3545;
+      background: linear-gradient(135deg, var(--cyber-red) 0%, #cc0033 100%);
       color: white;
+      border: 1px solid var(--cyber-red);
+      box-shadow: 0 0 10px rgba(255, 0, 64, 0.3);
+    }
+
+    .btn-danger:hover {
+      box-shadow: 0 0 20px var(--cyber-red);
     }
 
     .btn-success {
-      background: #28a745;
+      background: linear-gradient(135deg, #00cc44 0%, #00aa33 100%);
       color: white;
+      border: 1px solid #00cc44;
+      box-shadow: 0 0 10px rgba(0, 204, 68, 0.3);
     }
 
-    /* Main Interface Styles */
+    .btn-success:hover {
+      box-shadow: 0 0 20px #00cc44;
+    }
+
+    /* Main Interface */
     .main-interface {
       display: none;
       width: 100%;
@@ -202,79 +380,82 @@
       margin: 10px 0 20px 0;
       width: 100%;
       align-items: center;
-      background: rgba(255, 215, 0, 0.05);
+      background: var(--bg-terminal);
       padding: 15px;
       border-radius: 8px;
-      border: 2px solid rgba(255, 215, 0, 0.3);
+      border: 1px solid var(--cyber-green);
+      box-shadow: var(--border-glow);
       position: relative;
-      z-index: 5;
+    }
+
+    .btn-container::before {
+      content: '🛡️ CARD_INJECTOR';
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      background: var(--bg-terminal);
+      padding: 0 8px;
+      font-size: 0.7em;
+      color: var(--cyber-blue);
     }
 
     .btn-container button {
       width: 100%;
       max-width: 300px;
       padding: 16px 20px;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
-      border: 2px solid;
-      border-radius: 8px;
+      border-radius: 4px;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
     }
 
     .btn-container .btn-success {
-      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-      color: white;
-      border-color: #28a745;
+      background: linear-gradient(135deg, #00FF41 0%, #00CC33 100%);
+      color: var(--bg-dark);
+      border: 2px solid var(--cyber-green);
+      box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
     }
 
     .btn-container .btn-success:hover {
-      background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+      box-shadow: 0 0 30px var(--cyber-green), 0 0 60px var(--cyber-green);
+      transform: scale(1.02);
     }
 
     .btn-container .btn-danger {
-      background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+      background: linear-gradient(135deg, var(--cyber-red) 0%, #cc0033 100%);
       color: white;
-      border-color: #dc3545;
+      border: 2px solid var(--cyber-red);
+      box-shadow: 0 0 15px rgba(255, 0, 64, 0.4);
     }
 
     .btn-container .btn-danger:hover {
-      background: linear-gradient(135deg, #c82333 0%, #c0392b 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
+      box-shadow: 0 0 30px var(--cyber-red), 0 0 60px var(--cyber-red);
+      transform: scale(1.02);
     }
 
-    /* Disabled Button Styles */
     .btn-container button:disabled {
-      opacity: 0.5 !important;
+      opacity: 0.4 !important;
       cursor: not-allowed !important;
       transform: none !important;
       box-shadow: none !important;
     }
 
-    .btn-container button:disabled:hover {
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
     .shortcut-info {
-      font-size: 0.8em;
-      color: #ccc;
+      font-size: 0.75em;
+      color: var(--text-secondary);
     }
 
-    /* Quick BIN Input Styles */
+    /* Quick BIN */
     .quick-bin-container {
       margin-bottom: 15px;
     }
 
     .quick-bin-container label {
-      color: #FFD700;
-      font-size: 0.9em;
+      color: var(--cyber-green);
+      font-size: 0.85em;
       display: block;
       margin-bottom: 8px;
     }
@@ -288,10 +469,10 @@
     .quick-bin-input {
       flex: 1;
       padding: 12px;
-      border: 2px solid #FFD700;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      border: 1px solid var(--cyber-green);
+      border-radius: 4px;
+      background: rgba(0, 255, 65, 0.05);
+      color: var(--cyber-green);
       font-size: 16px;
       height: 48px;
       font-weight: bold;
@@ -299,8 +480,8 @@
 
     .quick-bin-input:focus {
       outline: none;
-      border-color: #FFC700;
-      box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+      border-color: var(--cyber-blue);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
     }
 
     .quick-bin-btn {
@@ -308,28 +489,27 @@
       height: 48px;
       font-size: 14px;
       font-weight: bold;
-      border: 2px solid #FFD700;
-      border-radius: 8px;
-      background: #FFD700;
-      color: #23272f;
+      border: 1px solid var(--cyber-green);
+      border-radius: 4px;
+      background: var(--cyber-green);
+      color: var(--bg-dark);
       cursor: pointer;
       transition: all 0.3s ease;
     }
 
     .quick-bin-btn:hover {
-      background: #FFC700;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+      box-shadow: 0 0 20px var(--cyber-green);
     }
 
+    /* Status Cards */
     .subscription-info {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--bg-terminal);
       padding: 15px;
       border-radius: 8px;
-      border: 1px solid rgba(255, 215, 0, 0.3);
+      border: 1px solid var(--cyber-green);
+      box-shadow: var(--border-glow);
       margin-bottom: 15px;
       width: 100%;
-      text-align: center;
     }
 
     .subscription-status {
@@ -340,55 +520,74 @@
     }
 
     .status-badge {
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 4px;
-      font-size: 0.8em;
+      font-size: 0.75em;
       font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .status-active {
-      background: #28a745;
-      color: white;
+      background: var(--cyber-green);
+      color: var(--bg-dark);
+      box-shadow: 0 0 10px var(--cyber-green);
+      animation: pulse 2s infinite;
     }
 
     .status-expired {
-      background: #dc3545;
+      background: var(--cyber-red);
       color: white;
+      box-shadow: 0 0 10px var(--cyber-red);
     }
 
     .expiry-date {
-      font-size: 0.9em;
-      color: #ccc;
+      font-size: 0.85em;
+      color: var(--text-secondary);
     }
 
     .user-info {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 10px;
+      background: var(--bg-terminal);
+      padding: 12px;
       border-radius: 8px;
+      border: 1px solid rgba(0, 255, 65, 0.3);
       margin-bottom: 15px;
       width: 100%;
-      text-align: center;
       text-align: center;
     }
 
     .user-name {
-      color: #FFD700;
+      color: var(--cyber-green);
       font-weight: bold;
       margin-bottom: 5px;
+      text-shadow: 0 0 10px var(--cyber-green);
     }
 
     .device-info {
       font-size: 0.8em;
-      color: #ccc;
+      color: var(--text-secondary);
     }
 
     /* Auto Try Section */
     .auto-try-section {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--bg-terminal);
       padding: 15px;
       border-radius: 8px;
-      border: 1px solid rgba(255, 215, 0, 0.3);
+      border: 1px solid var(--cyber-green);
+      box-shadow: var(--border-glow);
       margin-bottom: 15px;
+      position: relative;
+    }
+
+    .auto-try-section::before {
+      content: '⚡ AUTO_INJECT';
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      background: var(--bg-terminal);
+      padding: 0 8px;
+      font-size: 0.7em;
+      color: var(--cyber-purple);
     }
 
     .auto-try-controls {
@@ -405,16 +604,16 @@
     }
 
     .input-group label {
-      font-size: 0.8em;
-      color: #FFD700;
+      font-size: 0.75em;
+      color: var(--cyber-green);
     }
 
     .input-group input {
-      padding: 6px;
-      border: 1px solid #FFD700;
+      padding: 8px;
+      border: 1px solid var(--cyber-green);
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      background: rgba(0, 255, 65, 0.05);
+      color: var(--cyber-green);
       text-align: center;
       font-size: 12px;
     }
@@ -423,57 +622,61 @@
       text-align: center;
       font-size: 14px;
       font-weight: bold;
-      color: #FFD700;
+      color: var(--cyber-blue);
       margin: 10px 0;
       min-height: 20px;
+      text-shadow: 0 0 10px var(--cyber-blue);
     }
 
-    /* Alert Styles */
+    /* Alerts */
     .alert {
       padding: 10px;
       margin: 10px 0;
-      border-radius: 8px;
+      border-radius: 4px;
       text-align: center;
-      font-size: 0.9em;
+      font-size: 0.85em;
+      border: 1px solid;
     }
 
     .alert-success {
-      background: rgba(40, 167, 69, 0.2);
-      border: 1px solid #28a745;
-      color: #28a745;
+      background: rgba(0, 255, 65, 0.1);
+      border-color: var(--cyber-green);
+      color: var(--cyber-green);
+      box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
     }
 
     .alert-error {
-      background: rgba(220, 53, 69, 0.2);
-      border: 1px solid #dc3545;
-      color: #dc3545;
+      background: rgba(255, 0, 64, 0.1);
+      border-color: var(--cyber-red);
+      color: var(--cyber-red);
+      box-shadow: 0 0 10px rgba(255, 0, 64, 0.2);
     }
 
     .alert-warning {
-      background: rgba(255, 193, 7, 0.2);
-      border: 1px solid #ffc107;
+      background: rgba(255, 193, 7, 0.1);
+      border-color: #ffc107;
       color: #ffc107;
     }
 
-    /* Notification Styles */
+    /* Notifications */
     .popup-notification {
       position: fixed;
       top: 10px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 8px 16px;
-      border-radius: 6px;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 10px 20px;
+      border-radius: 4px;
+      color: var(--cyber-green);
+      font-family: 'Fira Code', monospace;
       font-size: 12px;
       font-weight: bold;
       z-index: 999999;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 0 20px var(--cyber-green);
       max-width: 280px;
       word-wrap: break-word;
       animation: popupSlideIn 0.3s ease-out;
-      background-color: #222;
-      border: 1px solid #444;
+      background: var(--bg-terminal);
+      border: 1px solid var(--cyber-green);
     }
 
     @keyframes popupSlideIn {
@@ -481,55 +684,88 @@
         transform: translateX(-50%) translateY(-100%);
         opacity: 0;
       }
+
       to {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
       }
     }
 
-    @keyframes popupSlideOut {
-      from {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(-50%) translateY(-100%);
-        opacity: 0;
-      }
-    }
-
-    /* Loading */
+    /* Loading - Hacker Style */
     .loading {
       text-align: center;
       padding: 20px;
     }
 
     .spinner {
-      border: 3px solid rgba(255, 215, 0, 0.3);
-      border-top: 3px solid #FFD700;
+      border: 3px solid rgba(0, 255, 65, 0.2);
+      border-top: 3px solid var(--cyber-green);
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 15px;
+      box-shadow: 0 0 15px var(--cyber-green);
+    }
+
+    .loading p {
+      color: var(--cyber-green);
+      animation: blink 1s infinite;
+    }
+
+    .loading p::after {
+      content: '...';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+
+      0%,
+      20% {
+        content: '.';
+      }
+
+      40% {
+        content: '..';
+      }
+
+      60%,
+      100% {
+        content: '...';
+      }
+    }
+
+    @keyframes blink {
+
+      0%,
+      50% {
+        opacity: 1;
+      }
+
+      51%,
+      100% {
+        opacity: 0.5;
+      }
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
-    /* Toggle Switch Styles */
-    .switch input:checked + .slider {
-      background-color: #FFD700;
+    /* Toggle Switch */
+    .switch input:checked+.slider {
+      background-color: var(--cyber-green);
+      box-shadow: 0 0 10px var(--cyber-green);
     }
 
-    .switch input:checked + .slider:before {
+    .switch input:checked+.slider:before {
       transform: translateX(26px);
-    }
-
-    .switch input:focus + .slider {
-      box-shadow: 0 0 1px #FFD700;
     }
 
     .slider:before {
@@ -539,30 +775,40 @@
       width: 16px;
       left: 4px;
       bottom: 4px;
-      background-color: white;
+      background-color: var(--bg-dark);
       transition: .4s;
       border-radius: 50%;
     }
 
-    /* تحسين العرض في الشاشات الصغيرة */
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--cyber-green);
+      border-radius: 3px;
+      box-shadow: 0 0 5px var(--cyber-green);
+    }
+
+    /* Selection */
+    ::selection {
+      background: var(--cyber-green);
+      color: var(--bg-dark);
+    }
+
     @media (max-width: 450px) {
       .container {
         max-width: 100vw;
         padding: 8px;
       }
-      .main-interface,
-      .login-form,
-      .settings-section,
-      .bin-management-section,
-      .auto-try-section,
-      .subscription-info,
-      .user-info,
-      .logs-section,
-      .additional-controls {
-        max-width: 100vw;
-      }
     }
   </style>
+
 </head>
 
 <body>
@@ -585,8 +831,9 @@
     <!-- Login Form -->
     <div id="login-section">
       <div class="login-form">
-        <h3 style="color: #FFD700; margin-bottom: 15px; text-align: center;">تسجيل الدخول</h3>
-        
+        <h3 style="color: #00FF41; margin-bottom: 15px; text-align: center; font-family: 'Orbitron', sans-serif;">🔐
+          SECURE LOGIN</h3>
+
         <form id="login-form">
           <div class="form-group">
             <label for="username">اسم المستخدم أو البريد الإلكتروني:</label>
@@ -607,8 +854,8 @@
         </form>
 
         <div class="divider"></div>
-        
-        <p style="text-align: center; color: #ccc; font-size: 0.9em; margin-bottom: 10px;">
+
+        <p style="text-align: center; color: #7fba00; font-size: 0.85em; margin-bottom: 10px;">
           ليس لديك حساب؟ تواصل مع الأدمن
         </p>
       </div>
@@ -617,25 +864,30 @@
     <!-- Main Interface -->
     <div id="main-interface" class="main-interface">
       <!-- Hidden Input Div -->
-      <div class="inputdiv" style="display: none; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
-        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">إعدادات متقدمة</h4>
+      <div class="inputdiv"
+        style="display: none; background: rgba(0, 255, 65, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(0, 255, 65, 0.3); margin-bottom: 15px;">
+        <h4 style="color: #00FF41; margin-bottom: 10px; text-align: center;">⚙️ ADVANCED SETTINGS</h4>
         <!-- This div can be used for additional settings -->
       </div>
 
       <!-- Main Buttons -->
       <div class="btn-container" style="margin-top: 10px; margin-bottom: 28px; gap: 18px;">
-        <button id="activeBtn" class="btn btn-success" style="font-size: 18px; padding: 16px 0; border-width: 2px; box-shadow: 0 2px 8px rgba(40,167,69,0.12);">Active Bin</button>
+        <button id="activeBtn" class="btn btn-success"
+          style="font-size: 18px; padding: 16px 0; border-width: 2px; box-shadow: 0 2px 8px rgba(40,167,69,0.12);">Active
+          Bin</button>
         <div class="shortcut-info" style="margin-bottom: 8px;">Shortcut: Ctrl+Shift+V</div>
-        <button id="declineBtn" class="btn btn-danger" style="font-size: 18px; padding: 16px 0; border-width: 2px; box-shadow: 0 2px 8px rgba(220,53,69,0.12);">Decline Bin</button>
+        <button id="declineBtn" class="btn btn-danger"
+          style="font-size: 18px; padding: 16px 0; border-width: 2px; box-shadow: 0 2px 8px rgba(220,53,69,0.12);">Decline
+          Bin</button>
         <div class="shortcut-info">Shortcut: Ctrl+Shift+X</div>
       </div>
 
       <!-- Auto Try Section -->
       <div class="auto-try-section">
         <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">المحاولة التلقائية</h4>
-        
+
         <div class="countdown" id="autoTryCountdown"></div>
-        
+
         <div class="auto-try-controls">
           <div class="input-group">
             <label for="activeTryInterval">الفاصل الزمني (ثواني)</label>
@@ -646,7 +898,7 @@
             <input type="number" id="activeTryCount" min="1" max="100" value="19">
           </div>
         </div>
-        
+
         <!-- Auto Try Controls -->
         <div style="margin-top: 10px; text-align: center;">
           <button id="stopTryBtn" class="btn btn-danger" style="display: none;">إيقاف المحاولة</button>
@@ -669,53 +921,67 @@
       </div>
 
       <!-- Card List Testing Section -->
-      <div class="card-list-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+      <div class="card-list-section"
+        style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
         <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">اختبار قائمة البطاقات</h4>
-        
+
         <div style="margin-bottom: 10px;">
-          <label style="color: #FFD700; font-size: 0.9em; display: block; margin-bottom: 5px;">أدخل البطاقات (سطر لكل بطاقة):</label>
-          <textarea id="cardListInput" placeholder="5178058045633305|11|2025|478&#10;5178059329390877|04|2029|379" style="width: 100%; height: 120px; padding: 10px; border: 1px solid #FFD700; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+          <label style="color: #FFD700; font-size: 0.9em; display: block; margin-bottom: 5px;">أدخل البطاقات (سطر لكل
+            بطاقة):</label>
+          <textarea id="cardListInput" placeholder="5178058045633305|11|2025|478&#10;5178059329390877|04|2029|379"
+            style="width: 100%; height: 120px; padding: 10px; border: 1px solid #FFD700; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
         </div>
-        
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
           <span id="cardListCount" style="color: #ccc; font-size: 0.9em;">0 بطاقة</span>
           <div style="display: flex; align-items: center; gap: 8px;">
             <label style="color: #FFD700; font-size: 0.8em;">التأخير (ث):</label>
-            <input type="number" id="cardTestDelay" value="3" min="1" max="60" style="width: 50px; padding: 4px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; text-align: center;">
+            <input type="number" id="cardTestDelay" value="3" min="1" max="60"
+              style="width: 50px; padding: 4px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; text-align: center;">
           </div>
         </div>
-        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <button id="startCardListTest" class="btn btn-success">بدء الاختبار</button>
           <button id="stopCardListTest" class="btn btn-danger" style="display: none;">إيقاف</button>
           <button id="clearCardList" class="btn btn-secondary" style="grid-column: 1 / -1;">مسح القائمة</button>
         </div>
-        
-        <div id="cardListProgress" style="margin-top: 10px; font-size: 0.85em; color: #ccc; max-height: 100px; overflow-y: auto;"></div>
+
+        <div id="cardListProgress"
+          style="margin-top: 10px; font-size: 0.85em; color: #ccc; max-height: 100px; overflow-y: auto;"></div>
       </div>
 
       <!-- BIN Management Section -->
-      <div class="bin-management-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+      <div class="bin-management-section"
+        style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
         <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">إدارة BIN</h4>
-        
+
         <!-- Quick BIN -->
         <div class="quick-bin-container">
           <label for="quickBinInput">BIN سريع:</label>
           <div class="quick-bin-input-group">
             <input type="text" id="quickBinInput" placeholder="أدخل BIN" class="quick-bin-input" style="flex: 3;">
-            <button id="quickUseBinBtn" class="quick-bin-btn" style="flex: 1; min-width: 60px; max-width: 90px; padding: 0 8px; font-size: 13px; height: 36px;">استخدام</button>
+            <button id="quickUseBinBtn" class="quick-bin-btn"
+              style="flex: 1; min-width: 60px; max-width: 90px; padding: 0 8px; font-size: 13px; height: 36px;">استخدام</button>
           </div>
         </div>
 
         <!-- New BIN Form -->
         <div style="margin-bottom: 15px;">
-          <label style="color: #FFD700; font-size: 0.9em; text-align: center; display: block; margin-bottom: 8px;">إضافة BIN جديد:</label>
+          <label style="color: #FFD700; font-size: 0.9em; text-align: center; display: block; margin-bottom: 8px;">إضافة
+            BIN جديد:</label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px;">
-            <input type="text" id="newBinInput" placeholder="نمط BIN" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
-            <input type="text" id="newCardNumber" placeholder="رقم البطاقة (اختياري)" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
-            <input type="text" id="newExpiryDate" placeholder="MM/YY" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
-            <input type="text" id="newCvc" placeholder="CVC" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
-            <input type="text" id="newBinName" placeholder="اسم BIN" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; grid-column: 1 / -1;">
+            <input type="text" id="newBinInput" placeholder="نمط BIN"
+              style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newCardNumber" placeholder="رقم البطاقة (اختياري)"
+              style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newExpiryDate" placeholder="MM/YY"
+              style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newCvc" placeholder="CVC"
+              style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newBinName" placeholder="اسم BIN"
+              style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; grid-column: 1 / -1;">
             <button id="addBinBtn" class="btn btn-success" style="grid-column: 1 / -1;">إضافة BIN</button>
           </div>
         </div>
@@ -725,17 +991,20 @@
       </div>
 
       <!-- Settings Section -->
-      <div class="settings-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+      <div class="settings-section"
+        style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
         <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">الإعدادات</h4>
-        
+
         <!-- Auto Save Toggle -->
         <div style="margin-bottom: 15px;">
           <div class="switch-container" style="display: flex; align-items: center; justify-content: space-between;">
             <label style="color: #FFD700; font-size: 0.9em;">الحفظ التلقائي:</label>
             <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
               <input type="checkbox" id="cardAutoSaveToggle" style="opacity: 0; width: 0; height: 0;">
-              <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;">
-                <span style="position: absolute; content: ''; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+              <span class="slider"
+                style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;">
+                <span
+                  style="position: absolute; content: ''; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
               </span>
             </label>
           </div>
@@ -745,27 +1014,33 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
           <div>
             <label for="activeBinInput" style="color: #FFD700; font-size: 0.8em;">Active BIN:</label>
-            <input type="text" id="activeBinInput" placeholder="Active BIN" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+            <input type="text" id="activeBinInput" placeholder="Active BIN"
+              style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
           </div>
           <div>
             <label for="expireActiveDateInput" style="color: #FFD700; font-size: 0.8em;">تاريخ Active:</label>
-            <input type="text" id="expireActiveDateInput" placeholder="MM/YY" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+            <input type="text" id="expireActiveDateInput" placeholder="MM/YY"
+              style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
           </div>
           <div>
             <label for="activeCvvInput" style="color: #FFD700; font-size: 0.8em;">CVC Active:</label>
-            <input type="text" id="activeCvvInput" placeholder="CVC" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+            <input type="text" id="activeCvvInput" placeholder="CVC"
+              style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
           </div>
           <div>
             <label for="declineBinInput" style="color: #FFD700; font-size: 0.8em;">Decline BIN:</label>
-            <input type="text" id="declineBinInput" placeholder="Decline BIN" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+            <input type="text" id="declineBinInput" placeholder="Decline BIN"
+              style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
           </div>
           <div>
             <label for="expireDeclineDateInput" style="color: #FFD700; font-size: 0.8em;">تاريخ Decline:</label>
-            <input type="text" id="expireDeclineDateInput" placeholder="MM/YY" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+            <input type="text" id="expireDeclineDateInput" placeholder="MM/YY"
+              style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
           </div>
           <div>
             <label for="declineCvvInput" style="color: #FFD700; font-size: 0.8em;">CVC Decline:</label>
-            <input type="text" id="declineCvvInput" placeholder="CVC" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+            <input type="text" id="declineCvvInput" placeholder="CVC"
+              style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
           </div>
         </div>
 
@@ -773,9 +1048,10 @@
       </div>
 
       <!-- Additional Controls -->
-      <div class="additional-controls" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+      <div class="additional-controls"
+        style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
         <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">أدوات إضافية</h4>
-        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <button id="Setting" class="btn btn-secondary">الإعدادات</button>
           <button id="autoTryToggle" class="btn btn-secondary">تبديل المحاولة التلقائية</button>
@@ -783,7 +1059,8 @@
 
         <!-- Language and Zoom Controls -->
         <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
-          <select id="langSwitcher" style="padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+          <select id="langSwitcher"
+            style="padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
             <option value="ar">العربية</option>
             <option value="en">English</option>
           </select>
@@ -793,9 +1070,11 @@
       </div>
 
       <!-- Logs Section -->
-      <div class="logs-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+      <div class="logs-section"
+        style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
         <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">سجل العمليات</h4>
-        <div id="logsBox" style="max-height: 150px; overflow-y: auto; font-size: 0.8em; color: #ccc; background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 4px;">
+        <div id="logsBox"
+          style="max-height: 150px; overflow-y: auto; font-size: 0.8em; color: #ccc; background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 4px;">
           <span style="color:#666">لا يوجد عمليات بعد.</span>
         </div>
       </div>

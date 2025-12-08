@@ -32,12 +32,8 @@ function getAppwriteHeaders() {
 // API Calls
 async function fetchDocuments(collectionId, queries = []) {
     try {
+        // Fetch all documents without query params (Appwrite query format was causing issues)
         let url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${collectionId}/documents`;
-
-        if (queries.length > 0) {
-            const queryParams = queries.map(q => `queries[]=${encodeURIComponent(q)}`).join('&');
-            url += `?${queryParams}`;
-        }
 
         const response = await fetch(url, {
             method: 'GET',
@@ -51,6 +47,7 @@ async function fetchDocuments(collectionId, queries = []) {
         return { documents: [], total: 0 };
     }
 }
+
 
 async function createDocument(collectionId, data) {
     try {
