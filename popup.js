@@ -552,12 +552,19 @@ document.addEventListener('DOMContentLoaded', () => {
     stopCardListTest();
   }
 
-  // Initialize card list testing event listeners
-  document.addEventListener('DOMContentLoaded', () => {
+  // Initialize card list testing event listeners (direct initialization since we're already in DOMContentLoaded)
+  (function initCardListTesting() {
     const cardListInput = document.getElementById('cardListInput');
     const startBtn = document.getElementById('startCardListTest');
     const stopBtn = document.getElementById('stopCardListTest');
     const clearBtn = document.getElementById('clearCardList');
+
+    console.log('Card List Test - Elements found:', {
+      cardListInput: !!cardListInput,
+      startBtn: !!startBtn,
+      stopBtn: !!stopBtn,
+      clearBtn: !!clearBtn
+    });
 
     if (cardListInput) {
       cardListInput.addEventListener('input', updateCardListCount);
@@ -568,6 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (startBtn) {
       startBtn.addEventListener('click', startCardListTest);
+      console.log('Card List Test - Start button listener attached');
     }
 
     if (stopBtn) {
@@ -577,7 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (clearBtn) {
       clearBtn.addEventListener('click', clearCardList);
     }
-  });
+  })();
+
 
 
   // Settings toggle
