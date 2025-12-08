@@ -2158,9 +2158,9 @@ function startAutoTry() {
     return;
   }
 
-  if (maxAutoTryCount < 1 || maxAutoTryCount > 100) {
+  if (maxAutoTryCount < 1 || maxAutoTryCount > 1000) {
     console.error('عدد محاولات غير صحيح:', maxAutoTryCount);
-    showAlert('عدد المحاولات يجب أن يكون بين 1 و 100', 'error');
+    showAlert('عدد المحاولات يجب أن يكون بين 1 و 1000', 'error');
     return;
   }
 
