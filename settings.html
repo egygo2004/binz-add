@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات Doc_HEMA Team Extension</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #23272f 0%, #1a1d23 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 12px;
+            border: 2px solid #FFD700;
+        }
+
+        .header h1 {
+            color: #FFD700;
+            font-size: 2em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .version-badge {
+            background: linear-gradient(90deg, #FFD700 0%, #23272f 100%);
+            color: #23272f;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .section h3 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #FFD700;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #FFC700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #FFD700;
+            color: #23272f;
+        }
+
+        .btn-primary:hover {
+            background: #FFC700;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFD700;
+            border: 1px solid #FFD700;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .alert {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+
+        .alert-error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+        }
+
+        .bin-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .bin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .bin-info {
+            flex: 1;
+        }
+
+        .bin-number {
+            font-weight: bold;
+            color: #FFD700;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+
+        .bin-details {
+            font-size: 0.8em;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        .bin-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-top: 3px solid #FFD700;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .bin-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .bin-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>إعدادات Doc_HEMA Team</h1>
+            <div class="version-badge">V4</div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alert-container"></div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>جاري التحميل...</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="section">
+            <h3>إحصائيات النظام</h3>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-bins">0</div>
+                    <div class="stat-label">إجمالي BIN</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="active-bins">0</div>
+                    <div class="stat-label">BIN نشط</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="decline-bins">0</div>
+                    <div class="stat-label">BIN مرفوض</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active BIN Settings -->
+        <div class="section">
+            <h3>إعدادات BIN النشط</h3>
+            <form id="active-bin-form">
+                <div class="form-group">
+                    <label for="activeBin">رقم BIN النشط:</label>
+                    <input type="text" id="activeBin" name="activeBin" placeholder="أدخل رقم BIN (مثال: 123456XXXXXX1234)" maxlength="16">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="activeExpiry">تاريخ الانتهاء:</label>
+                        <input type="text" id="activeExpiry" name="activeExpiry" placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="activeCvv">CVV:</label>
+                        <input type="text" id="activeCvv" name="activeCvv" placeholder="123" maxlength="4">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ BIN النشط</button>
+                <button type="button" class="btn btn-secondary" onclick="testActiveBin()">اختبار BIN النشط</button>
+            </form>
+        </div>
+
+        <!-- Decline BIN Settings -->
+        <div class="section">
+            <h3>إعدادات BIN المرفوض</h3>
+            <form id="decline-bin-form">
+                <div class="form-group">
+                    <label for="declineBin">رقم BIN المرفوض:</label>
+                    <input type="text" id="declineBin" name="declineBin" placeholder="أدخل رقم BIN (مثال: 123456XXXXXX1234)" maxlength="16">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="declineExpiry">تاريخ الانتهاء:</label>
+                        <input type="text" id="declineExpiry" name="declineExpiry" placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="declineCvv">CVV:</label>
+                        <input type="text" id="declineCvv" name="declineCvv" placeholder="123" maxlength="4">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">حفظ BIN المرفوض</button>
+                <button type="button" class="btn btn-secondary" onclick="testDeclineBin()">اختبار BIN المرفوض</button>
+            </form>
+        </div>
+
+        <!-- BIN Management -->
+        <div class="section">
+            <h3>إدارة BIN المحفوظة</h3>
+            <div class="bin-list" id="bin-list">
+                <p style="text-align: center; color: #ccc;">لا توجد BIN محفوظة</p>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-secondary" onclick="loadBins()">تحديث القائمة</button>
+                <button class="btn btn-danger" onclick="clearAllBins()">مسح جميع BIN</button>
+            </div>
+        </div>
+
+        <!-- Auto Try Settings -->
+        <div class="section">
+            <h3>إعدادات المحاولة التلقائية</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="autoTryInterval">الفاصل الزمني (ثواني):</label>
+                    <input type="number" id="autoTryInterval" name="autoTryInterval" min="1" max="120" value="3">
+                </div>
+                <div class="form-group">
+                    <label for="autoTryCount">عدد المحاولات:</label>
+                    <input type="number" id="autoTryCount" name="autoTryCount" min="1" max="100" value="19">
+                </div>
+            </div>
+            <button class="btn btn-success" onclick="saveAutoTrySettings()">حفظ الإعدادات</button>
+        </div>
+
+        <!-- System Actions -->
+        <div class="section">
+            <h3>إجراءات النظام</h3>
+            <button class="btn btn-secondary" onclick="exportSettings()">تصدير الإعدادات</button>
+            <button class="btn btn-secondary" onclick="importSettings()">استيراد الإعدادات</button>
+            <button class="btn btn-danger" onclick="resetSettings()">إعادة تعيين الإعدادات</button>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html> 

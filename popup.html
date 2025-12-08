@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doc_HEMA Team Extension</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 400px !important;
+      min-width: 400px !important;
+      max-width: 400px !important;
+      height: 600px !important;
+      min-height: 600px !important;
+      max-height: 600px !important;
+      background: linear-gradient(135deg, #23272f 0%, #1a1d23 100%);
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      max-width: 400px;
+      max-height: 600px;
+      min-width: 400px;
+      min-height: 600px;
+      margin: 0 auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .main-interface,
+    .login-form,
+    .settings-section,
+    .bin-management-section,
+    .auto-try-section,
+    .subscription-info,
+    .user-info,
+    .logs-section,
+    .additional-controls {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      margin: 0 auto 15px auto;
+    }
+
+    input, select, button {
+      width: 100%;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: rgba(255, 215, 0, 0.1);
+      border-radius: 12px;
+      border: 2px solid #FFD700;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header h1 {
+      color: #FFD700;
+      font-size: 1.8em;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .version-badge {
+      background: linear-gradient(90deg, #FFD700 0%, #23272f 100%);
+      color: #23272f;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 5px;
+    }
+
+    .divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #FFD700, transparent);
+      margin: 15px 0;
+    }
+
+    /* Login Form Styles */
+    .login-form {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      margin-bottom: 20px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #FFD700;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #FFD700;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 14px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #FFC700;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
+    }
+
+    .btn-primary {
+      background: #FFD700;
+      color: #23272f;
+    }
+
+    .btn-primary:hover {
+      background: #FFC700;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFD700;
+      border: 1px solid #FFD700;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    /* Main Interface Styles */
+    .main-interface {
+      display: none;
+      width: 100%;
+      position: relative;
+      z-index: 10;
+    }
+
+    .main-interface.show {
+      display: block !important;
+    }
+
+    .btn-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 10px 0 20px 0;
+      width: 100%;
+      align-items: center;
+      background: rgba(255, 215, 0, 0.05);
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 215, 0, 0.3);
+      position: relative;
+      z-index: 5;
+    }
+
+    .btn-container button {
+      width: 100%;
+      max-width: 300px;
+      padding: 16px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border: 2px solid;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-container .btn-success {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      border-color: #28a745;
+    }
+
+    .btn-container .btn-success:hover {
+      background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-container .btn-danger {
+      background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+      color: white;
+      border-color: #dc3545;
+    }
+
+    .btn-container .btn-danger:hover {
+      background: linear-gradient(135deg, #c82333 0%, #c0392b 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
+    }
+
+    /* Disabled Button Styles */
+    .btn-container button:disabled {
+      opacity: 0.5 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .btn-container button:disabled:hover {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .shortcut-info {
+      font-size: 0.8em;
+      color: #ccc;
+    }
+
+    /* Quick BIN Input Styles */
+    .quick-bin-container {
+      margin-bottom: 15px;
+    }
+
+    .quick-bin-container label {
+      color: #FFD700;
+      font-size: 0.9em;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .quick-bin-input-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .quick-bin-input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #FFD700;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 16px;
+      height: 48px;
+      font-weight: bold;
+    }
+
+    .quick-bin-input:focus {
+      outline: none;
+      border-color: #FFC700;
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+    }
+
+    .quick-bin-btn {
+      padding: 12px 16px;
+      height: 48px;
+      font-size: 14px;
+      font-weight: bold;
+      border: 2px solid #FFD700;
+      border-radius: 8px;
+      background: #FFD700;
+      color: #23272f;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .quick-bin-btn:hover {
+      background: #FFC700;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    }
+
+    .subscription-info {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      margin-bottom: 15px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .subscription-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+
+    .status-active {
+      background: #28a745;
+      color: white;
+    }
+
+    .status-expired {
+      background: #dc3545;
+      color: white;
+    }
+
+    .expiry-date {
+      font-size: 0.9em;
+      color: #ccc;
+    }
+
+    .user-info {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      width: 100%;
+      text-align: center;
+      text-align: center;
+    }
+
+    .user-name {
+      color: #FFD700;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .device-info {
+      font-size: 0.8em;
+      color: #ccc;
+    }
+
+    /* Auto Try Section */
+    .auto-try-section {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      margin-bottom: 15px;
+    }
+
+    .auto-try-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .input-group label {
+      font-size: 0.8em;
+      color: #FFD700;
+    }
+
+    .input-group input {
+      padding: 6px;
+      border: 1px solid #FFD700;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .countdown {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      color: #FFD700;
+      margin: 10px 0;
+      min-height: 20px;
+    }
+
+    /* Alert Styles */
+    .alert {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .alert-success {
+      background: rgba(40, 167, 69, 0.2);
+      border: 1px solid #28a745;
+      color: #28a745;
+    }
+
+    .alert-error {
+      background: rgba(220, 53, 69, 0.2);
+      border: 1px solid #dc3545;
+      color: #dc3545;
+    }
+
+    .alert-warning {
+      background: rgba(255, 193, 7, 0.2);
+      border: 1px solid #ffc107;
+      color: #ffc107;
+    }
+
+    /* Notification Styles */
+    .popup-notification {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 999999;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      max-width: 280px;
+      word-wrap: break-word;
+      animation: popupSlideIn 0.3s ease-out;
+      background-color: #222;
+      border: 1px solid #444;
+    }
+
+    @keyframes popupSlideIn {
+      from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes popupSlideOut {
+      from {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+      }
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 215, 0, 0.3);
+      border-top: 3px solid #FFD700;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Toggle Switch Styles */
+    .switch input:checked + .slider {
+      background-color: #FFD700;
+    }
+
+    .switch input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .switch input:focus + .slider {
+      box-shadow: 0 0 1px #FFD700;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    /* تحسين العرض في الشاشات الصغيرة */
+    @media (max-width: 450px) {
+      .container {
+        max-width: 100vw;
+        padding: 8px;
+      }
+      .main-interface,
+      .login-form,
+      .settings-section,
+      .bin-management-section,
+      .auto-try-section,
+      .subscription-info,
+      .user-info,
+      .logs-section,
+      .additional-controls {
+        max-width: 100vw;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Doc_HEMA Team</h1>
+      <div class="version-badge">V4</div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading">
+      <div class="spinner"></div>
+      <p>جاري التحميل...</p>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login-section">
+      <div class="login-form">
+        <h3 style="color: #FFD700; margin-bottom: 15px; text-align: center;">تسجيل الدخول</h3>
+        
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">اسم المستخدم أو البريد الإلكتروني:</label>
+            <input type="text" id="username" name="username" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">كلمة المرور:</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+
+          <div class="form-group">
+            <label for="deviceName">اسم الجهاز:</label>
+            <input type="text" id="deviceName" name="deviceName" placeholder="اختياري">
+          </div>
+
+          <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
+        </form>
+
+        <div class="divider"></div>
+        
+        <p style="text-align: center; color: #ccc; font-size: 0.9em; margin-bottom: 10px;">
+          ليس لديك حساب؟ تواصل مع الأدمن
+        </p>
+      </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div id="main-interface" class="main-interface">
+      <!-- Hidden Input Div -->
+      <div class="inputdiv" style="display: none; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">إعدادات متقدمة</h4>
+        <!-- This div can be used for additional settings -->
+      </div>
+
+      <!-- Main Buttons -->
+      <div class="btn-container" style="margin-top: 10px; margin-bottom: 28px; gap: 18px;">
+        <button id="activeBtn" class="btn btn-success" style="font-size: 18px; padding: 16px 0; border-width: 2px; box-shadow: 0 2px 8px rgba(40,167,69,0.12);">Active Bin</button>
+        <div class="shortcut-info" style="margin-bottom: 8px;">Shortcut: Ctrl+Shift+V</div>
+        <button id="declineBtn" class="btn btn-danger" style="font-size: 18px; padding: 16px 0; border-width: 2px; box-shadow: 0 2px 8px rgba(220,53,69,0.12);">Decline Bin</button>
+        <div class="shortcut-info">Shortcut: Ctrl+Shift+X</div>
+      </div>
+
+      <!-- Auto Try Section -->
+      <div class="auto-try-section">
+        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">المحاولة التلقائية</h4>
+        
+        <div class="countdown" id="autoTryCountdown"></div>
+        
+        <div class="auto-try-controls">
+          <div class="input-group">
+            <label for="activeTryInterval">الفاصل الزمني (ثواني)</label>
+            <input type="number" id="activeTryInterval" min="1" max="120" value="3">
+          </div>
+          <div class="input-group">
+            <label for="activeTryCount">عدد المحاولات</label>
+            <input type="number" id="activeTryCount" min="1" max="100" value="19">
+          </div>
+        </div>
+        
+        <!-- Auto Try Controls -->
+        <div style="margin-top: 10px; text-align: center;">
+          <button id="stopTryBtn" class="btn btn-danger" style="display: none;">إيقاف المحاولة</button>
+        </div>
+      </div>
+
+      <!-- User Info -->
+      <div class="user-info">
+        <div class="user-name" id="user-name">اسم المستخدم</div>
+        <div class="device-info" id="device-info">الجهاز: غير محدد</div>
+      </div>
+
+      <!-- Subscription Info -->
+      <div class="subscription-info">
+        <div class="subscription-status">
+          <span>حالة الاشتراك:</span>
+          <span class="status-badge" id="subscription-status">غير محدد</span>
+        </div>
+        <div class="expiry-date" id="expiry-date">تاريخ الانتهاء: غير محدد</div>
+      </div>
+
+      <!-- Card List Testing Section -->
+      <div class="card-list-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">اختبار قائمة البطاقات</h4>
+        
+        <div style="margin-bottom: 10px;">
+          <label style="color: #FFD700; font-size: 0.9em; display: block; margin-bottom: 5px;">أدخل البطاقات (سطر لكل بطاقة):</label>
+          <textarea id="cardListInput" placeholder="5178058045633305|11|2025|478&#10;5178059329390877|04|2029|379" style="width: 100%; height: 120px; padding: 10px; border: 1px solid #FFD700; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px; font-family: monospace; resize: vertical;"></textarea>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <span id="cardListCount" style="color: #ccc; font-size: 0.9em;">0 بطاقة</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="color: #FFD700; font-size: 0.8em;">التأخير (ث):</label>
+            <input type="number" id="cardTestDelay" value="3" min="1" max="60" style="width: 50px; padding: 4px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; text-align: center;">
+          </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button id="startCardListTest" class="btn btn-success">بدء الاختبار</button>
+          <button id="stopCardListTest" class="btn btn-danger" style="display: none;">إيقاف</button>
+          <button id="clearCardList" class="btn btn-secondary" style="grid-column: 1 / -1;">مسح القائمة</button>
+        </div>
+        
+        <div id="cardListProgress" style="margin-top: 10px; font-size: 0.85em; color: #ccc; max-height: 100px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- BIN Management Section -->
+      <div class="bin-management-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">إدارة BIN</h4>
+        
+        <!-- Quick BIN -->
+        <div class="quick-bin-container">
+          <label for="quickBinInput">BIN سريع:</label>
+          <div class="quick-bin-input-group">
+            <input type="text" id="quickBinInput" placeholder="أدخل BIN" class="quick-bin-input" style="flex: 3;">
+            <button id="quickUseBinBtn" class="quick-bin-btn" style="flex: 1; min-width: 60px; max-width: 90px; padding: 0 8px; font-size: 13px; height: 36px;">استخدام</button>
+          </div>
+        </div>
+
+        <!-- New BIN Form -->
+        <div style="margin-bottom: 15px;">
+          <label style="color: #FFD700; font-size: 0.9em; text-align: center; display: block; margin-bottom: 8px;">إضافة BIN جديد:</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px;">
+            <input type="text" id="newBinInput" placeholder="نمط BIN" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newCardNumber" placeholder="رقم البطاقة (اختياري)" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newExpiryDate" placeholder="MM/YY" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newCvc" placeholder="CVC" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white;">
+            <input type="text" id="newBinName" placeholder="اسم BIN" style="padding: 8px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; grid-column: 1 / -1;">
+            <button id="addBinBtn" class="btn btn-success" style="grid-column: 1 / -1;">إضافة BIN</button>
+          </div>
+        </div>
+
+        <!-- Saved BINs -->
+        <div id="cardManager" style="max-height: 200px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="settings-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">الإعدادات</h4>
+        
+        <!-- Auto Save Toggle -->
+        <div style="margin-bottom: 15px;">
+          <div class="switch-container" style="display: flex; align-items: center; justify-content: space-between;">
+            <label style="color: #FFD700; font-size: 0.9em;">الحفظ التلقائي:</label>
+            <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+              <input type="checkbox" id="cardAutoSaveToggle" style="opacity: 0; width: 0; height: 0;">
+              <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;">
+                <span style="position: absolute; content: ''; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- BIN Settings -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+          <div>
+            <label for="activeBinInput" style="color: #FFD700; font-size: 0.8em;">Active BIN:</label>
+            <input type="text" id="activeBinInput" placeholder="Active BIN" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+          </div>
+          <div>
+            <label for="expireActiveDateInput" style="color: #FFD700; font-size: 0.8em;">تاريخ Active:</label>
+            <input type="text" id="expireActiveDateInput" placeholder="MM/YY" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+          </div>
+          <div>
+            <label for="activeCvvInput" style="color: #FFD700; font-size: 0.8em;">CVC Active:</label>
+            <input type="text" id="activeCvvInput" placeholder="CVC" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+          </div>
+          <div>
+            <label for="declineBinInput" style="color: #FFD700; font-size: 0.8em;">Decline BIN:</label>
+            <input type="text" id="declineBinInput" placeholder="Decline BIN" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+          </div>
+          <div>
+            <label for="expireDeclineDateInput" style="color: #FFD700; font-size: 0.8em;">تاريخ Decline:</label>
+            <input type="text" id="expireDeclineDateInput" placeholder="MM/YY" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+          </div>
+          <div>
+            <label for="declineCvvInput" style="color: #FFD700; font-size: 0.8em;">CVC Decline:</label>
+            <input type="text" id="declineCvvInput" placeholder="CVC" style="width: 100%; padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+          </div>
+        </div>
+
+        <button id="SaveBtn" class="btn btn-primary" style="width: 100%;">حفظ الإعدادات</button>
+      </div>
+
+      <!-- Additional Controls -->
+      <div class="additional-controls" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">أدوات إضافية</h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button id="Setting" class="btn btn-secondary">الإعدادات</button>
+          <button id="autoTryToggle" class="btn btn-secondary">تبديل المحاولة التلقائية</button>
+        </div>
+
+        <!-- Language and Zoom Controls -->
+        <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
+          <select id="langSwitcher" style="padding: 6px; border: 1px solid #FFD700; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 12px;">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+          </select>
+          <button id="zoomInBtn" class="btn btn-secondary" style="padding: 6px 8px; font-size: 12px;">+</button>
+          <button id="zoomOutBtn" class="btn btn-secondary" style="padding: 6px 8px; font-size: 12px;">-</button>
+        </div>
+      </div>
+
+      <!-- Logs Section -->
+      <div class="logs-section" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 215, 0, 0.3); margin-bottom: 15px;">
+        <h4 style="color: #FFD700; margin-bottom: 10px; text-align: center;">سجل العمليات</h4>
+        <div id="logsBox" style="max-height: 150px; overflow-y: auto; font-size: 0.8em; color: #ccc; background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 4px;">
+          <span style="color:#666">لا يوجد عمليات بعد.</span>
+        </div>
+      </div>
+
+      <!-- Logout Button -->
+      <button id="logoutBtn" class="btn btn-secondary">تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIN Autofiller & Open Links - V3</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Cairo', Arial, sans-serif;
+      background: #18191a;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      width: 350px;
+      box-sizing: border-box;
+    }
+
+    .container {
+      background: #23272f;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      padding: 32px 24px 24px 24px;
+      margin: 0 auto;
+      width: 350px;
+      box-sizing: border-box;
+      transition: box-shadow 0.3s;
+    }
+
+    .container:hover {
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    h1 {
+      color: #f5f6fa;
+      text-align: center;
+      margin-bottom: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px #1118;
+    }
+
+    .version-badge {
+      background: linear-gradient(90deg, #444950 0%, #23272f 100%);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+      margin-left: 10px;
+      box-shadow: 0 2px 8px #0004;
+    }
+
+    button,
+    .activeback {
+      background: linear-gradient(90deg, #FFD700 0%, #B8860B 100%);
+      color: #18191a;
+      border: none;
+      border-radius: 25px;
+      padding: 12px 0;
+      width: 100%;
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.2s, color 0.2s;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      border: 1.5px solid #FFD70044;
+    }
+
+    button:focus,
+    .activeback:focus {
+      box-shadow: 0 0 0 3px #FFD70099;
+    }
+
+    button:hover,
+    .activeback:hover {
+      background: linear-gradient(90deg, #B8860B 0%, #FFD700 100%);
+      color: #fff;
+      transform: scale(1.04);
+      box-shadow: 0 8px 24px rgba(255, 215, 0, 0.18);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1.5px solid #444950;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #23272f 0%, #18191a 100%);
+      color: #f5f6fa;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: #888;
+      background: linear-gradient(90deg, #23272f 60%, #23272f 100%);
+      box-shadow: 0 0 0 2px #44495099, 0 2px 8px rgba(0, 0, 0, 0.18);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      font-weight: bold;
+      margin-top: 18px;
+      border-top: 1px solid #444950;
+      padding-top: 10px;
+      letter-spacing: 1px;
+      background: transparent;
+    }
+
+    .btn-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 5px;
+    }
+
+    .shortcut-info {
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+      text-shadow: 0 1px 2px #0006;
+    }
+
+    .inputdiv {
+      margin-top: 18px;
+      background: linear-gradient(135deg, #23272f 60%, #18191a 100%);
+      border-radius: 14px;
+      padding: 18px 12px 10px 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      transition: box-shadow 0.3s;
+    }
+
+    .inputdiv:focus-within {
+      box-shadow: 0 4px 16px #44495055;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #b0b3b8;
+      margin-bottom: 3px;
+      letter-spacing: 0.5px;
+    }
+
+    .bin-input-section {
+      background: linear-gradient(135deg, #23272f 60%, #18191a 100%);
+      border-radius: 14px;
+      padding: 18px 12px 10px 12px;
+      margin-top: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      transition: box-shadow 0.3s;
+    }
+
+    .bin-input-section:focus-within {
+      box-shadow: 0 4px 16px #44495055;
+    }
+
+    .bin-input-section h3 {
+      color: #f5f6fa;
+      margin: 0 0 15px 0;
+      font-size: 16px;
+      text-align: center;
+      text-shadow: 0 1px 4px #0008;
+    }
+
+    .bin-input-section input {
+      font-family: monospace;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #23272f 0%, #18191a 100%);
+      color: #f5f6fa;
+      border: 1.5px solid #444950;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    }
+
+    .bin-input-section input:focus {
+      border-color: #888;
+      background: linear-gradient(90deg, #23272f 60%, #23272f 100%);
+      box-shadow: 0 0 0 2px #44495099, 0 2px 8px rgba(0, 0, 0, 0.18);
+    }
+
+    .bin-help {
+      font-size: 11px;
+      color: #aaa;
+      text-align: center;
+      margin-top: 8px;
+      text-shadow: 0 1px 2px #0006;
+    }
+
+    body.dark-mode {
+      background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+    }
+
+    body.dark-mode .container,
+    body.dark-mode .inputdiv,
+    body.dark-mode .bin-input-section {
+      background: #1565C0;
+      color: #fff;
+    }
+
+    body.dark-mode input,
+    body.dark-mode input[type="text"] {
+      background: #1976D2;
+      color: #fff;
+      border-color: #2196F3;
+    }
+
+    body.dark-mode .footer {
+      color: #64B5F6;
+      border-top: 1px solid #2196F3;
+    }
+
+    body.dark-mode button,
+    body.dark-mode .activeback {
+      background: linear-gradient(90deg, #1565C0 0%, #0D47A1 100%);
+      color: #64B5F6;
+    }
+
+    #logsBox {
+      margin-top: 18px;
+      background: linear-gradient(135deg, #23272f 60%, #18191a 100%);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13px;
+      min-height: 40px;
+      color: #f5f6fa;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
+      transition: box-shadow 0.3s;
+    }
+
+    #logsBox:focus-within {
+      box-shadow: 0 4px 16px #44495055;
+    }
+
+    .auto-save-label {
+      color: #f5f6fa;
+      font-size: 15px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 4px #000a;
+      margin-right: 8px;
+      transition: color 0.3s;
+    }
+
+    .auto-try-label {
+      font-size: 14px;
+      color: #FFD700;
+      font-weight: bold;
+      letter-spacing: 0.2px;
+      text-shadow: 0 1px 4px #000a;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:8px;">
+      <select id="langSwitcher"
+        style="background:#23272f;color:#FFD700;border:1.5px solid #FFD700;border-radius:8px;padding:4px 12px;font-weight:bold;outline:none;cursor:pointer;">
+        <option value="ar">العربية</option>
+        <option value="en">English</option>
+        <option value="bn">বাংলা</option>
+      </select>
+    </div>
+    <h1 id="mainTitle">Doc_HEMA Team <span class="version-badge">V3</span></h1>
+    <div class="btn-container">
+      <button id="declineBtn">Decline Bin</button>
+      <div class="shortcut-info">Shortcut: Ctrl+Shift+X</div>
+      <button class="activeback" id="activeBtn" style="background:#4CAF50;color:#fff;">Active Bin</button>
+      <div class="shortcut-info">Shortcut: Ctrl+Shift+V</div>
+    </div>
+
+
+    <div class="bin-input-section">
+      <h3 data-i18n="addBinSection">إضافة BIN جديد</h3>
+      <div class="input-group">
+        <label for="newBinInput" data-i18n="newBinInputLabel">رقم BIN (6-16 رقم، استخدم X للمجهول)</label>
+        <input type="text" id="newBinInput" data-i18n-ph="newBinInputPh" placeholder="مثال: 123456XXXXXX1234"
+          maxlength="16" style="text-transform: uppercase;">
+      </div>
+      <div class="input-group">
+        <label for="newCardNumber" data-i18n="newCardNumberLabel">رقم البطاقة الكامل (اختياري)</label>
+        <input type="text" id="newCardNumber" data-i18n-ph="newCardNumberPh" placeholder="1234567890123456"
+          maxlength="16">
+      </div>
+      <div style="display: flex; gap: 16px;">
+        <div class="input-group">
+          <label for="newExpiryDate" data-i18n="newExpiryDateLabel">تاريخ الانتهاء (اختياري)</label>
+          <input type="text" id="newExpiryDate" data-i18n-ph="newExpiryDatePh" placeholder="MM/YY" maxlength="5">
+        </div>
+        <div class="input-group">
+          <label for="newCvc" data-i18n="newCvcLabel">CVC (اختياري)</label>
+          <input type="text" id="newCvc" data-i18n-ph="newCvcPh" placeholder="123" maxlength="3">
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="newBinName" data-i18n="newBinNameLabel">اسم BIN (اختياري)</label>
+        <input type="text" id="newBinName" data-i18n-ph="newBinNamePh" placeholder="اسم البطاقة">
+      </div>
+      <button id="addBinBtn" style="background: #4CAF50;" data-i18n="addBin">إضافة BIN</button>
+      <div class="bin-help" data-i18n="binHelp">استخدم X للمواقع المجهولة، سيتم توليد أرقام عشوائية. إذا أدخلت رقم
+        البطاقة الكامل، سيتم استخدامه بدلاً من التوليد.</div>
+    </div>
+
+
+    <div class="bin-input-section" style="margin-top: 15px;">
+      <h3 data-i18n="quickBinSection">استخدام BIN سريع</h3>
+      <div class="input-group">
+        <label for="quickBinInput" data-i18n="quickBinInputLabel">أدخل BIN للاستخدام السريع</label>
+        <input type="text" id="quickBinInput" data-i18n-ph="quickBinInputPh" placeholder="BIN سريع (6-16 رقم)"
+          maxlength="16">
+      </div>
+      <button id="quickUseBinBtn" style="background: #FF9800;" data-i18n="quickUse">استخدام BIN في النموذج</button>
+      <div class="bin-help" data-i18n="quickBinHelp">سيتم توليد البيانات وملء النموذج مباشرة في فيسبوك</div>
+    </div>
+
+    <button class="activeback" id="Setting" data-i18n="setting">Setting</button>
+  </div>
+  <div class="inputdiv">
+    <label class="switch-container">
+      <span class="auto-save-label" data-i18n="cardAutoSaveLabel">Card Auto Save</span>
+      <label class="switch">
+        <input type="checkbox" id="cardAutoSaveToggle">
+        <span class="slider"></span>
+      </label>
+    </label>
+    <div class="input-group">
+      <label for="activeBinInput" data-i18n="activeBinInputLabel">Active BIN</label>
+      <input type="text" id="activeBinInput" data-i18n-ph="activeBinInputPh" placeholder="Enter Active BIN"
+        inputmode="numeric" pattern="\d*" maxlength="16">
+    </div>
+    <div style="display: flex; gap: 16px;">
+      <div class="input-group">
+        <label for="activeTryInterval" data-i18n="activeTryIntervalLabel">الفاصل الزمني (ثواني)</label>
+        <input type="number" id="activeTryInterval" min="1" max="120" value="3" style="text-align:center;">
+      </div>
+      <div class="input-group">
+        <label for="activeTryCount" data-i18n="activeTryCountLabel">عدد المحاولات</label>
+        <input type="number" id="activeTryCount" min="1" max="100" value="19" style="text-align:center;">
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px;">
+      <div class="input-group">
+        <label for="expireActiveDateInput" data-i18n="expireActiveDateInputLabel">Active BIN Expire Date</label>
+        <input type="text" id="expireActiveDateInput" data-i18n-ph="expireActiveDateInputPh" placeholder="MMYY"
+          inputmode="numeric" pattern="\d*" maxlength="4">
+      </div>
+      <div class="input-group">
+        <label for="activeCvvInput" data-i18n="activeCvvInputLabel">Active BIN CVV</label>
+        <input type="text" id="activeCvvInput" data-i18n-ph="activeCvvInputPh" placeholder="CVV" inputmode="numeric"
+          pattern="\d*" maxlength="3">
+      </div>
+    </div>
+    <div class="input-group">
+      <label for="declineBinInput" data-i18n="declineBinInputLabel">Decline BIN</label>
+      <input type="text" id="declineBinInput" data-i18n-ph="declineBinInputPh" placeholder="Enter Decline BIN"
+        inputmode="numeric" pattern="\d*" maxlength="16">
+    </div>
+    <div style="display: flex; gap: 16px;">
+      <div class="input-group">
+        <label for="expireDeclineDateInput" data-i18n="expireDeclineDateInputLabel">Decline BIN Expire Date</label>
+        <input type="text" id="expireDeclineDateInput" data-i18n-ph="expireDeclineDateInputPh" placeholder="MMYY"
+          inputmode="numeric" pattern="\d*" maxlength="4">
+      </div>
+      <div class="input-group">
+        <label for="declineCvvInput" data-i18n="declineCvvInputLabel">Decline BIN CVV</label>
+        <input type="text" id="declineCvvInput" data-i18n-ph="declineCvvInputPh" placeholder="CVV" inputmode="numeric"
+          pattern="\d*" maxlength="3">
+      </div>
+    </div>
+    <button class="activeback" id="SaveBtn" data-i18n="saveBinBtn">Save Bin</button>
+  </div>
+  <div id="cardManager" style="margin-top:18px;"></div>
+  <div id="logsBox"
+    style="margin-top:18px; background:#E3F2FD; border-radius:10px; padding:10px; font-size:13px; min-height:40px;">
+  </div>
+
+  <div class="footer" data-i18n="madeBy">
+    (Made by Doc_HEMA)
+  </div>
+  <script src="options.js"></script>
+</body>
+
+</html>

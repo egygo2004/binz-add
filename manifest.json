@@ -1,0 +1,64 @@
+{
+  "manifest_version": 3,
+  "name": "Doc_HEMA Team Extension",
+  "version": "4.0.0",
+  "description": "BIN Autofiller & Open Links - Doc_HEMA Team",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Doc_HEMA Team Extension"
+  },
+  "options_page": "settings.html",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs",
+    "contextMenus",
+    "commands"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://*/*",
+    "http://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "execute-active-bin": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+V",
+        "mac": "Command+Shift+V"
+      },
+      "description": "Execute Active BIN"
+    },
+    "execute-decline-bin": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
+      },
+      "description": "Execute Decline BIN"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.html", "popup.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
