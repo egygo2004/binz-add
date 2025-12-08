@@ -1713,11 +1713,10 @@ async function login(username, password, deviceName) {
     console.log('إرسال طلب تسجيل الدخول إلى Appwrite...');
     console.log('البحث عن المستخدم:', username);
 
-    // Query user from Appwrite database using correct format
-    const queryStr = JSON.stringify({ method: 'equal', attribute: 'username', values: [username] });
-    const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.users}/documents?queries[]=${encodeURIComponent(queryStr)}`;
+    // Fetch all users from Appwrite and filter locally (like admin.js does)
+    const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.users}/documents`;
 
-    console.log('Query URL:', url);
+    console.log('Fetching users from:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -1729,19 +1728,25 @@ async function login(username, password, deviceName) {
     const data = await response.json();
     console.log('بيانات الاستجابة:', data);
 
-    if (response.ok && data.documents && data.documents.length > 0) {
-      const user = data.documents[0];
+    // Find user by username locally
+    const user = (data.documents || []).find(u => u.username === username);
+    console.log('Found user:', user);
+
+    if (response.ok && user) {
+
 
       // Check password (simple check for now)
       if (user.password === password || !user.password) {
         console.log('تم تسجيل الدخول بنجاح');
 
-        // Get subscription
-        const subUrl = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.subscriptions}/documents?queries[]=${encodeURIComponent(`equal("userId", "${user.userId}")`)}`;
+        // Get subscription - fetch all and filter locally
+        const subUrl = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.subscriptions}/documents`;
         const subResponse = await fetch(subUrl, { method: 'GET', headers: getAppwriteHeaders() });
         const subData = await subResponse.json();
 
-        const subscription = subData.documents && subData.documents.length > 0 ? subData.documents[0] : null;
+        const subscription = (subData.documents || []).find(s => s.userId === user.userId);
+        console.log('Found subscription:', subscription);
+
 
         currentUser = {
           ...user,
