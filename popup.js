@@ -1840,12 +1840,14 @@ async function verifyToken() {
       const user = await response.json();
       console.log('التوكن صالح، تحديث بيانات المستخدم');
 
-      // Get subscription
-      const subUrl = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.subscriptions}/documents?queries[]=${encodeURIComponent(`equal("userId", "${user.userId}")`)}`;
+      // Get subscription - fetch all and filter locally (like login function)
+      const subUrl = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.subscriptions}/documents`;
       const subResponse = await fetch(subUrl, { method: 'GET', headers: getAppwriteHeaders() });
       const subData = await subResponse.json();
 
-      const subscription = subData.documents && subData.documents.length > 0 ? subData.documents[0] : null;
+      const subscription = (subData.documents || []).find(s => s.userId === user.userId);
+      console.log('verifyToken - Found subscription:', subscription);
+
 
       currentUser = {
         ...user,
