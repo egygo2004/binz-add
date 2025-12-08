@@ -17,6 +17,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 function addBindingLog(result) {
+  // If updatePending flag, update the last PENDING entry instead of adding new
+  if (result.updatePending && bindingLogs.length > 0) {
+    const pendingIndex = bindingLogs.findIndex(l => l.status === 'PENDING');
+    if (pendingIndex !== -1) {
+      // Update stats: remove unknown, add new status
+      bindingStats.unknown = Math.max(0, bindingStats.unknown - 1);
+      if (result.status === 'SUCCESS') bindingStats.success++;
+      else if (result.status === 'FAILED') bindingStats.failed++;
+      else bindingStats.unknown++;
+
+      // Update the log entry
+      bindingLogs[pendingIndex] = {
+        card: result.card || bindingLogs[pendingIndex].card,
+        status: result.status || 'UNKNOWN',
+        reason: result.reason || '',
+        bin: result.bin || bindingLogs[pendingIndex].bin,
+        time: bindingLogs[pendingIndex].time
+      };
+
+      chrome.storage.local.set({ bindingLogs, bindingStats });
+      updateBindingLogsUI();
+      return;
+    }
+  }
+
   const log = {
     card: result.card || '****',
     status: result.status || 'UNKNOWN',
@@ -25,17 +50,15 @@ function addBindingLog(result) {
     time: new Date().toLocaleTimeString('ar-EG')
   };
 
-  bindingLogs.unshift(log); // Add to beginning
-  if (bindingLogs.length > 50) bindingLogs.pop(); // Keep max 50 logs
+  bindingLogs.unshift(log);
+  if (bindingLogs.length > 50) bindingLogs.pop();
 
   // Update stats
   if (result.status === 'SUCCESS') bindingStats.success++;
   else if (result.status === 'FAILED') bindingStats.failed++;
   else bindingStats.unknown++;
 
-  // Save to storage
   chrome.storage.local.set({ bindingLogs, bindingStats });
-
   updateBindingLogsUI();
 }
 
@@ -57,15 +80,18 @@ function updateBindingLogsUI() {
     } else {
       container.innerHTML = bindingLogs.map(log => {
         const statusColor = log.status === 'SUCCESS' ? '#4CAF50' :
-          log.status === 'FAILED' ? '#f44336' : '#ff9800';
+          log.status === 'FAILED' ? '#f44336' :
+            log.status === 'PENDING' ? '#2196F3' : '#ff9800';
         const statusIcon = log.status === 'SUCCESS' ? '✅' :
-          log.status === 'FAILED' ? '❌' : '⏱️';
+          log.status === 'FAILED' ? '❌' :
+            log.status === 'PENDING' ? '⏳' : '⏱️';
         const reasonText = {
           'url_changed': 'تغير URL',
           'fields_disappeared': 'اختفت الحقول',
           'success_message': 'رسالة نجاح',
           'error_message': 'رسالة خطأ',
-          'timeout': 'انتهاء الوقت'
+          'timeout': 'انتهاء الوقت',
+          'waiting': 'جاري الكشف...'
         }[log.reason] || log.reason;
 
         return `

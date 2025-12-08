@@ -1060,45 +1060,82 @@ async function executeActiveBin() {
         args: [cardData]
       });
 
-      console.log('Card form filled, starting binding detection...');
+      console.log('Card form filled, sending immediate log...');
 
-      // Inject and execute binding detection
-      const detectionResults = await chrome.scripting.executeScript({
+      // Send immediate "PENDING" result to popup
+      const cardLast4 = cardData.cardNumber?.slice(-4) || '****';
+      chrome.runtime.sendMessage({
+        action: 'cardBindingResult',
+        data: {
+          card: cardLast4,
+          status: 'PENDING',
+          reason: 'waiting',
+          bin: activeBinData.bin
+        }
+      }).catch(() => { });
+
+      // Also save to storage directly for persistence
+      chrome.storage.local.get(['bindingLogs', 'bindingStats'], (result) => {
+        const logs = result.bindingLogs || [];
+        const stats = result.bindingStats || { success: 0, failed: 0, unknown: 0 };
+
+        logs.unshift({
+          card: cardLast4,
+          status: 'PENDING',
+          reason: 'جاري الكشف...',
+          bin: activeBinData.bin,
+          time: new Date().toLocaleTimeString('ar-EG')
+        });
+
+        if (logs.length > 50) logs.pop();
+        stats.unknown++;
+
+        chrome.storage.local.set({ bindingLogs: logs, bindingStats: stats });
+      });
+
+      console.log('Starting binding detection (async)...');
+
+      // Run detection in background (don't wait)
+      chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: detectCardBindingSuccess,
         args: [cardData]
-      });
+      }).then(detectionResults => {
+        const detectionResult = detectionResults?.[0]?.result;
+        console.log('Card binding detection result:', detectionResult);
 
-      const detectionResult = detectionResults?.[0]?.result;
-      console.log('Card binding detection result:', detectionResult);
+        if (detectionResult) {
+          const status = detectionResult.success === true ? 'SUCCESS' :
+            detectionResult.success === false ? 'FAILED' : 'UNKNOWN';
 
-      // Log result to Appwrite
-      if (detectionResult) {
-        const status = detectionResult.success === true ? 'SUCCESS' :
-          detectionResult.success === false ? 'FAILED' : 'UNKNOWN';
-        sendToBackend('CARD_BINDING', {
-          cardLast4: detectionResult.card,
-          status: status,
-          reason: detectionResult.reason,
-          bin: activeBinData.bin,
-          time: new Date().toISOString()
-        });
-
-        // Send to popup for live display
-        chrome.runtime.sendMessage({
-          action: 'cardBindingResult',
-          data: {
-            card: detectionResult.card,
+          // Update in Appwrite
+          sendToBackend('CARD_BINDING', {
+            cardLast4: detectionResult.card,
             status: status,
             reason: detectionResult.reason,
-            bin: activeBinData.bin
-          }
-        }).catch(() => { }); // Ignore if popup is closed
+            bin: activeBinData.bin,
+            time: new Date().toISOString()
+          });
 
-        console.log(`Card binding ${status}: ${detectionResult.reason}`);
-      }
+          // Update popup
+          chrome.runtime.sendMessage({
+            action: 'cardBindingResult',
+            data: {
+              card: detectionResult.card,
+              status: status,
+              reason: detectionResult.reason,
+              bin: activeBinData.bin,
+              updatePending: true // Flag to update last pending entry
+            }
+          }).catch(() => { });
 
-      return { success: true, message: 'تم ملء النموذج بنجاح', detection: detectionResult };
+          console.log(`Card binding ${status}: ${detectionResult.reason}`);
+        }
+      }).catch(err => {
+        console.error('Detection error:', err);
+      });
+
+      return { success: true, message: 'تم ملء النموذج بنجاح' };
     } else {
       console.error('No BIN set in activeBinData');
       // Try to reload from storage
