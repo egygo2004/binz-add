@@ -1020,22 +1020,30 @@ chrome.action.onClicked.addListener(() => {
 // Execute Active Bin
 async function executeActiveBin() {
   try {
+    console.log('=== executeActiveBin called ===');
+    console.log('Current activeBinData:', JSON.stringify(activeBinData));
+
     // Get current active tab
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || tabs.length === 0) {
+      console.error('No active tab found');
       return { success: false, error: 'لا يوجد تبويب نشط' };
     }
 
     const tab = tabs[0];
+    console.log('Active tab URL:', tab.url);
 
     // Check if we're on a supported site
     if (!isSupportedSite(tab.url)) {
+      console.error('Site not supported:', tab.url);
       return { success: false, error: 'الموقع غير مدعوم' };
     }
 
     // Generate card data if BIN is available
     if (activeBinData.bin) {
+      console.log('BIN found, generating card data...');
       const cardData = generateCardData(activeBinData);
+      console.log('Generated card data:', JSON.stringify(cardData));
 
       // Inject and execute the script
       await chrome.scripting.executeScript({
@@ -1044,8 +1052,18 @@ async function executeActiveBin() {
         args: [cardData]
       });
 
+      console.log('Card form filled successfully');
       return { success: true, message: 'تم ملء النموذج بنجاح' };
     } else {
+      console.error('No BIN set in activeBinData');
+      // Try to reload from storage
+      const result = await chrome.storage.local.get(['activeBinData']);
+      console.log('Reloaded from storage:', result);
+      if (result.activeBinData?.bin) {
+        activeBinData = result.activeBinData;
+        console.log('Retrying with reloaded data...');
+        return executeActiveBin(); // Retry with reloaded data
+      }
       return { success: false, error: 'لم يتم تعيين BIN نشط' };
     }
   } catch (error) {
@@ -1053,6 +1071,7 @@ async function executeActiveBin() {
     return { success: false, error: error.message };
   }
 }
+
 
 // Execute Decline Bin
 async function executeDeclineBin() {
