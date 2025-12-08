@@ -500,10 +500,12 @@ async function loadLogsData() {
         let hasMore = true;
 
         while (hasMore) {
-            const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents?limit=${limit}&offset=${offset}`;
+            const timestamp = Date.now(); // Cache buster
+            const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents?limit=${limit}&offset=${offset}&_t=${timestamp}`;
             const response = await fetch(url, {
                 method: 'GET',
-                headers: getAppwriteHeaders()
+                headers: getAppwriteHeaders(),
+                cache: 'no-store' // Force fresh data
             });
             const result = await response.json();
             const docs = result.documents || [];
