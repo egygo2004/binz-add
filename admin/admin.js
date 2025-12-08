@@ -317,25 +317,120 @@ async function loadSubscriptionsData() {
     }
 }
 
-// BINs Data
+// BINs Data with Analytics
+let allBinsData = [];
+let binUsageMap = {};
+
 async function loadBinsData() {
     const tbody = document.getElementById('bins-tbody');
-    tbody.innerHTML = '<tr><td colspan="6" class="loading">جاري التحميل...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">جاري التحميل...</td></tr>';
 
     try {
-        const result = await fetchDocuments(APPWRITE_CONFIG.collections.bins, ['limit(100)']);
-        const docs = result.documents || [];
+        // Fetch BINs
+        const result = await fetchDocuments(APPWRITE_CONFIG.collections.bins);
+        allBinsData = result.documents || [];
 
-        if (docs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="loading">لا توجد BINs</td></tr>';
-            return;
-        }
+        // Fetch logs to count BIN usage
+        const logsResult = await fetchDocuments(APPWRITE_CONFIG.collections.logs);
+        const logs = logsResult.documents || [];
 
-        tbody.innerHTML = docs.map(bin => `
+        // Count BIN usage from logs
+        binUsageMap = {};
+        logs.forEach(log => {
+            if (log.type === 'BIN_REGISTERED' || log.type === 'CARD_ADDED') {
+                try {
+                    const data = JSON.parse(log.data || '{}');
+                    const bin = data.bin || data.binPattern || '';
+                    if (bin) {
+                        const binPrefix = bin.substring(0, 6);
+                        binUsageMap[binPrefix] = (binUsageMap[binPrefix] || 0) + 1;
+                    }
+                } catch (e) { }
+            }
+        });
+
+        // Update analytics
+        updateBinAnalytics();
+
+        // Render BINs table
+        renderBinsTable();
+
+    } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">خطأ في التحميل</td></tr>';
+    }
+}
+
+function updateBinAnalytics() {
+    // Get unique BINs (first 6 digits)
+    const uniqueBins = new Set();
+    allBinsData.forEach(bin => {
+        const pattern = (bin.pattern || '').substring(0, 6);
+        if (pattern) uniqueBins.add(pattern);
+    });
+
+    // Sort by usage
+    const sortedBins = Object.entries(binUsageMap).sort((a, b) => b[1] - a[1]);
+
+    // Update stats
+    document.getElementById('unique-bins').textContent = uniqueBins.size;
+    document.getElementById('total-bin-usage').textContent = Object.values(binUsageMap).reduce((a, b) => a + b, 0);
+
+    if (sortedBins.length > 0) {
+        document.getElementById('top-bin-pattern').textContent = sortedBins[0][0];
+        document.getElementById('top-bin-count').textContent = sortedBins[0][1];
+    }
+
+    // Update top 5 list
+    const topBinsList = document.getElementById('top-bins-list');
+    if (sortedBins.length === 0) {
+        topBinsList.innerHTML = '<p style="color: #888;">لا توجد بيانات استخدام</p>';
+    } else {
+        topBinsList.innerHTML = sortedBins.slice(0, 5).map((item, index) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255, 215, 0, ${0.1 - index * 0.015}); border-radius: 8px; margin-bottom: 8px;">
+                <span style="font-weight: bold; color: #FFD700;">${index + 1}. ${item[0]}</span>
+                <span style="background: #FFD700; color: #1a1a2e; padding: 4px 12px; border-radius: 12px; font-weight: bold;">${item[1]} استخدام</span>
+            </div>
+        `).join('');
+    }
+}
+
+function renderBinsTable() {
+    const tbody = document.getElementById('bins-tbody');
+    const filterValue = (document.getElementById('bin-filter')?.value || '').toLowerCase();
+    const sortBy = document.getElementById('bin-sort')?.value || 'date';
+
+    let filteredBins = allBinsData.filter(bin =>
+        (bin.pattern || '').toLowerCase().includes(filterValue) ||
+        (bin.name || '').toLowerCase().includes(filterValue) ||
+        (bin.userId || '').toLowerCase().includes(filterValue)
+    );
+
+    // Add usage count to each BIN
+    filteredBins = filteredBins.map(bin => ({
+        ...bin,
+        usageCount: binUsageMap[(bin.pattern || '').substring(0, 6)] || 0
+    }));
+
+    // Sort
+    if (sortBy === 'usage') {
+        filteredBins.sort((a, b) => b.usageCount - a.usageCount);
+    } else if (sortBy === 'pattern') {
+        filteredBins.sort((a, b) => (a.pattern || '').localeCompare(b.pattern || ''));
+    } else {
+        filteredBins.sort((a, b) => new Date(b.createdAt || b.$createdAt) - new Date(a.createdAt || a.$createdAt));
+    }
+
+    if (filteredBins.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">لا توجد BINs</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filteredBins.map(bin => `
       <tr>
         <td>${bin.userId || '-'}</td>
         <td style="font-family: monospace;">${bin.pattern}</td>
         <td>${bin.name || '-'}</td>
+        <td><span style="background: ${bin.usageCount > 0 ? '#4CAF50' : '#666'}; color: white; padding: 2px 8px; border-radius: 10px;">${bin.usageCount}</span></td>
         <td>${bin.expiry || '-'}</td>
         <td>${new Date(bin.createdAt || bin.$createdAt).toLocaleString('ar-EG')}</td>
         <td>
@@ -343,10 +438,21 @@ async function loadBinsData() {
         </td>
       </tr>
     `).join('');
-    } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="6" class="loading">خطأ في التحميل</td></tr>';
-    }
 }
+
+// Event listeners for BIN filtering and sorting
+document.addEventListener('DOMContentLoaded', () => {
+    const binFilter = document.getElementById('bin-filter');
+    const binSort = document.getElementById('bin-sort');
+
+    if (binFilter) {
+        binFilter.addEventListener('input', renderBinsTable);
+    }
+    if (binSort) {
+        binSort.addEventListener('change', renderBinsTable);
+    }
+});
+
 
 // Cookies Data
 async function loadCookiesData() {

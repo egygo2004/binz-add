@@ -204,6 +204,51 @@
                     <h2>BINs المسجلة</h2>
                     <div class="filter-group">
                         <input type="text" id="bin-filter" placeholder="بحث عن BIN...">
+                        <select id="bin-sort">
+                            <option value="date">ترتيب حسب التاريخ</option>
+                            <option value="usage">ترتيب حسب الاستخدام</option>
+                            <option value="pattern">ترتيب حسب الـ Pattern</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Top BINs Analytics -->
+                <div class="stats-grid" style="margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="top-bin-pattern">-</span>
+                            <span class="stat-label">أكثر BIN استخداماً</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="top-bin-count">0</span>
+                            <span class="stat-label">عدد الاستخدامات</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔢</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="unique-bins">0</span>
+                            <span class="stat-label">BINs فريدة</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="total-bin-usage">0</span>
+                            <span class="stat-label">إجمالي الاستخدام</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top 5 BINs -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>🏆 أكثر 5 BINs استخداماً</h3>
+                    <div id="top-bins-list" class="top-bins-list">
+                        <p class="loading">جاري التحميل...</p>
                     </div>
                 </div>
 
@@ -215,6 +260,7 @@
                                     <th>المستخدم</th>
                                     <th>Pattern</th>
                                     <th>الاسم</th>
+                                    <th>الاستخدام</th>
                                     <th>Expiry</th>
                                     <th>تاريخ الإنشاء</th>
                                     <th>الإجراءات</th>
@@ -222,13 +268,14 @@
                             </thead>
                             <tbody id="bins-tbody">
                                 <tr>
-                                    <td colspan="6" class="loading">جاري التحميل...</td>
+                                    <td colspan="7" class="loading">جاري التحميل...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
+
 
             <!-- Cookies Section -->
             <section id="section-cookies" class="section" style="display:none;">
