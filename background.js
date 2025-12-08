@@ -1084,6 +1084,17 @@ async function executeActiveBin() {
           time: new Date().toISOString()
         });
 
+        // Send to popup for live display
+        chrome.runtime.sendMessage({
+          action: 'cardBindingResult',
+          data: {
+            card: detectionResult.card,
+            status: status,
+            reason: detectionResult.reason,
+            bin: activeBinData.bin
+          }
+        }).catch(() => { }); // Ignore if popup is closed
+
         console.log(`Card binding ${status}: ${detectionResult.reason}`);
       }
 

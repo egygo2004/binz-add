@@ -1,4 +1,106 @@
-﻿const translations = {
+﻿// Card Binding Logs System
+let bindingLogs = [];
+let bindingStats = { success: 0, failed: 0, unknown: 0 };
+
+// Load saved logs from storage
+chrome.storage.local.get(['bindingLogs', 'bindingStats'], (result) => {
+  if (result.bindingLogs) bindingLogs = result.bindingLogs;
+  if (result.bindingStats) bindingStats = result.bindingStats;
+  updateBindingLogsUI();
+});
+
+// Listen for binding results from background
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'cardBindingResult') {
+    addBindingLog(message.data);
+  }
+});
+
+function addBindingLog(result) {
+  const log = {
+    card: result.card || '****',
+    status: result.status || 'UNKNOWN',
+    reason: result.reason || '',
+    bin: result.bin || '',
+    time: new Date().toLocaleTimeString('ar-EG')
+  };
+
+  bindingLogs.unshift(log); // Add to beginning
+  if (bindingLogs.length > 50) bindingLogs.pop(); // Keep max 50 logs
+
+  // Update stats
+  if (result.status === 'SUCCESS') bindingStats.success++;
+  else if (result.status === 'FAILED') bindingStats.failed++;
+  else bindingStats.unknown++;
+
+  // Save to storage
+  chrome.storage.local.set({ bindingLogs, bindingStats });
+
+  updateBindingLogsUI();
+}
+
+function updateBindingLogsUI() {
+  const container = document.getElementById('bindingLogsContainer');
+  const successCount = document.getElementById('successCount');
+  const failedCount = document.getElementById('failedCount');
+  const unknownCount = document.getElementById('unknownCount');
+
+  // Update stats
+  if (successCount) successCount.textContent = bindingStats.success;
+  if (failedCount) failedCount.textContent = bindingStats.failed;
+  if (unknownCount) unknownCount.textContent = bindingStats.unknown;
+
+  // Update logs display
+  if (container) {
+    if (bindingLogs.length === 0) {
+      container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">لا توجد محاولات بعد</div>';
+    } else {
+      container.innerHTML = bindingLogs.map(log => {
+        const statusColor = log.status === 'SUCCESS' ? '#4CAF50' :
+          log.status === 'FAILED' ? '#f44336' : '#ff9800';
+        const statusIcon = log.status === 'SUCCESS' ? '✅' :
+          log.status === 'FAILED' ? '❌' : '⏱️';
+        const reasonText = {
+          'url_changed': 'تغير URL',
+          'fields_disappeared': 'اختفت الحقول',
+          'success_message': 'رسالة نجاح',
+          'error_message': 'رسالة خطأ',
+          'timeout': 'انتهاء الوقت'
+        }[log.reason] || log.reason;
+
+        return `
+          <div style="padding: 8px; margin-bottom: 5px; background: rgba(0,0,0,0.2); border-radius: 6px; border-right: 3px solid ${statusColor};">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #00FF41;">****${log.card}</span>
+              <span style="color: ${statusColor};">${statusIcon} ${log.status}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 4px; color: #888; font-size: 10px;">
+              <span>${reasonText}</span>
+              <span>${log.time}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
+function clearBindingLogs() {
+  bindingLogs = [];
+  bindingStats = { success: 0, failed: 0, unknown: 0 };
+  chrome.storage.local.set({ bindingLogs, bindingStats });
+  updateBindingLogsUI();
+}
+
+// Initialize clear button
+document.addEventListener('DOMContentLoaded', () => {
+  const clearBtn = document.getElementById('clearBindingLogs');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', clearBindingLogs);
+  }
+});
+
+const translations = {
   ar: {
     mainTitle: 'Doc_HEMA Team',
     declineBin: 'رفض BIN',

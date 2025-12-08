@@ -905,6 +905,36 @@
         </div>
       </div>
 
+      <!-- Card Binding Logs Section -->
+      <div class="card-binding-logs"
+        style="margin-top: 20px; padding: 15px; background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); border-radius: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="color: #00FF41; margin: 0;">📋 سجل ربط البطاقات</h4>
+          <button id="clearBindingLogs" class="btn btn-sm"
+            style="background: rgba(255,255,255,0.1); color: #888; border: none; padding: 5px 10px; font-size: 12px;">مسح</button>
+        </div>
+        <div id="bindingLogsContainer"
+          style="max-height: 200px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 12px;">
+          <div style="color: #666; text-align: center; padding: 20px;">لا توجد محاولات بعد</div>
+        </div>
+        <div id="bindingStats"
+          style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px; display: flex; justify-content: space-around; text-align: center;">
+          <div>
+            <span style="color: #4CAF50; font-weight: bold;" id="successCount">0</span>
+            <span style="color: #888; font-size: 11px;"> نجاح</span>
+          </div>
+          <div>
+            <span style="color: #f44336; font-weight: bold;" id="failedCount">0</span>
+            <span style="color: #888; font-size: 11px;"> فشل</span>
+          </div>
+          <div>
+            <span style="color: #ff9800; font-weight: bold;" id="unknownCount">0</span>
+            <span style="color: #888; font-size: 11px;"> غير محدد</span>
+          </div>
+        </div>
+      </div>
+
+
       <!-- User Info -->
       <div class="user-info">
         <div class="user-name" id="user-name">اسم المستخدم</div>
