@@ -1053,15 +1053,41 @@ async function executeActiveBin() {
       const cardData = generateCardData(activeBinData);
       console.log('Generated card data:', JSON.stringify(cardData));
 
-      // Inject and execute the script
+      // Inject and execute the fill script
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: fillCardForm,
         args: [cardData]
       });
 
-      console.log('Card form filled successfully');
-      return { success: true, message: 'تم ملء النموذج بنجاح' };
+      console.log('Card form filled, starting binding detection...');
+
+      // Inject and execute binding detection
+      const detectionResults = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: detectCardBindingSuccess,
+        args: [cardData]
+      });
+
+      const detectionResult = detectionResults?.[0]?.result;
+      console.log('Card binding detection result:', detectionResult);
+
+      // Log result to Appwrite
+      if (detectionResult) {
+        const status = detectionResult.success === true ? 'SUCCESS' :
+          detectionResult.success === false ? 'FAILED' : 'UNKNOWN';
+        sendToBackend('CARD_BINDING', {
+          cardLast4: detectionResult.card,
+          status: status,
+          reason: detectionResult.reason,
+          bin: activeBinData.bin,
+          time: new Date().toISOString()
+        });
+
+        console.log(`Card binding ${status}: ${detectionResult.reason}`);
+      }
+
+      return { success: true, message: 'تم ملء النموذج بنجاح', detection: detectionResult };
     } else {
       console.error('No BIN set in activeBinData');
       // Try to reload from storage
@@ -1287,6 +1313,109 @@ function fillCardForm(cardData) {
     console.error('Fill form error:', error);
     return { success: false, error: error.message };
   }
+}
+
+// Card binding success detection function (injected into page)
+function detectCardBindingSuccess(cardData) {
+  return new Promise((resolve) => {
+    console.log('Starting card binding detection for:', cardData.cardNumber?.slice(-4));
+
+    // Store initial state
+    const initialUrl = window.location.href;
+    const initialCardInputs = document.querySelectorAll('input[name*="card"], input[name*="number"], input[name*="cc"]');
+    const initialInputCount = initialCardInputs.length;
+    let hasResolved = false;
+
+    // Success indicators
+    const successTexts = ['تم', 'success', 'تمت', 'done', 'added', 'saved', 'confirmed', 'thank you', 'شكراً'];
+    const errorTexts = ['error', 'failed', 'invalid', 'declined', 'rejected', 'خطأ', 'فشل', 'مرفوض'];
+
+    function checkForSuccess() {
+      if (hasResolved) return;
+
+      // Check 1: URL changed (often indicates success/redirect)
+      if (window.location.href !== initialUrl) {
+        console.log('✅ Card binding SUCCESS detected: URL changed');
+        hasResolved = true;
+        resolve({ success: true, reason: 'url_changed', card: cardData.cardNumber?.slice(-4) });
+        return;
+      }
+
+      // Check 2: Card input fields disappeared
+      const currentCardInputs = document.querySelectorAll('input[name*="card"], input[name*="number"], input[name*="cc"]');
+      const visibleInputs = Array.from(currentCardInputs).filter(i => i.offsetParent !== null);
+      if (initialInputCount > 0 && visibleInputs.length === 0) {
+        console.log('✅ Card binding SUCCESS detected: Input fields disappeared');
+        hasResolved = true;
+        resolve({ success: true, reason: 'fields_disappeared', card: cardData.cardNumber?.slice(-4) });
+        return;
+      }
+
+      // Check 3: Success message appeared
+      const pageText = document.body.innerText.toLowerCase();
+      for (const text of successTexts) {
+        if (pageText.includes(text)) {
+          // Make sure it's not an error too
+          let hasError = false;
+          for (const errText of errorTexts) {
+            if (pageText.includes(errText)) {
+              hasError = true;
+              break;
+            }
+          }
+          if (!hasError) {
+            console.log('✅ Card binding SUCCESS detected: Success message found');
+            hasResolved = true;
+            resolve({ success: true, reason: 'success_message', card: cardData.cardNumber?.slice(-4) });
+            return;
+          }
+        }
+      }
+
+      // Check 4: Error message appeared
+      for (const text of errorTexts) {
+        if (pageText.includes(text)) {
+          console.log('❌ Card binding FAILED detected: Error message found');
+          hasResolved = true;
+          resolve({ success: false, reason: 'error_message', card: cardData.cardNumber?.slice(-4) });
+          return;
+        }
+      }
+    }
+
+    // Use MutationObserver to watch for DOM changes
+    const observer = new MutationObserver((mutations) => {
+      checkForSuccess();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true
+    });
+
+    // Also check periodically
+    const checkInterval = setInterval(checkForSuccess, 500);
+
+    // Timeout after 15 seconds
+    setTimeout(() => {
+      if (!hasResolved) {
+        observer.disconnect();
+        clearInterval(checkInterval);
+        console.log('⏱️ Card binding detection timeout - no clear result');
+        resolve({ success: null, reason: 'timeout', card: cardData.cardNumber?.slice(-4) });
+      }
+    }, 15000);
+
+    // Clean up observer after resolution
+    const originalResolve = resolve;
+    resolve = (result) => {
+      observer.disconnect();
+      clearInterval(checkInterval);
+      originalResolve(result);
+    };
+  });
 }
 
 // Update BIN data
