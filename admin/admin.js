@@ -490,17 +490,43 @@ let allLogsData = [];
 
 async function loadLogsData() {
     const tbody = document.getElementById('logs-tbody');
-    tbody.innerHTML = '<tr><td colspan="5" class="loading">جاري التحميل...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="loading">جاري تحميل جميع السجلات...</td></tr>';
 
     try {
-        const result = await fetchDocuments(APPWRITE_CONFIG.collections.logs);
-        allLogsData = result.documents || [];
+        // Fetch ALL logs by paginating (Appwrite default limit is 25)
+        allLogsData = [];
+        let offset = 0;
+        const limit = 100;
+        let hasMore = true;
 
+        while (hasMore) {
+            const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents?limit=${limit}&offset=${offset}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getAppwriteHeaders()
+            });
+            const result = await response.json();
+            const docs = result.documents || [];
+            allLogsData = allLogsData.concat(docs);
+
+            if (docs.length < limit) {
+                hasMore = false;
+            } else {
+                offset += limit;
+            }
+
+            // Update loading message with progress
+            tbody.innerHTML = `<tr><td colspan="5" class="loading">تم تحميل ${allLogsData.length} سجل...</td></tr>`;
+        }
+
+        console.log(`Total logs loaded: ${allLogsData.length}`);
         renderLogsTable();
     } catch (error) {
+        console.error('Error loading logs:', error);
         tbody.innerHTML = '<tr><td colspan="5" class="loading">خطأ في التحميل</td></tr>';
     }
 }
+
 
 function matchCardPattern(cardNumber, searchPattern) {
     if (!cardNumber || !searchPattern) return false;
@@ -531,6 +557,10 @@ function matchCardPattern(cardNumber, searchPattern) {
     return false;
 }
 
+// Pagination state
+let currentLogsPage = 1;
+let logsPerPage = 50;
+
 function renderLogsTable() {
     const tbody = document.getElementById('logs-tbody');
     const cardSearch = (document.getElementById('card-search')?.value || '').trim();
@@ -538,7 +568,7 @@ function renderLogsTable() {
     const searchResultsInfo = document.getElementById('search-results-info');
     const searchResultsText = document.getElementById('search-results-text');
 
-    let filteredLogs = allLogsData;
+    let filteredLogs = [...allLogsData];
 
     // Filter by type
     if (typeFilter) {
@@ -569,12 +599,38 @@ function renderLogsTable() {
     // Sort by date (newest first)
     filteredLogs.sort((a, b) => new Date(b.createdAt || b.$createdAt) - new Date(a.createdAt || a.$createdAt));
 
+    // Update total count
+    const logsCount = document.getElementById('logs-count');
+    if (logsCount) {
+        logsCount.textContent = `${filteredLogs.length} سجل`;
+    }
+
+    // Pagination
+    const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+    if (currentLogsPage > totalPages) currentLogsPage = 1;
+
+    const startIndex = (currentLogsPage - 1) * logsPerPage;
+    const endIndex = startIndex + logsPerPage;
+    const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
+
+    // Update pagination info
+    const pageInfo = document.getElementById('logs-page-info');
+    if (pageInfo) {
+        pageInfo.textContent = `صفحة ${currentLogsPage} من ${totalPages || 1}`;
+    }
+
+    // Update pagination buttons
+    const prevBtn = document.getElementById('logs-prev');
+    const nextBtn = document.getElementById('logs-next');
+    if (prevBtn) prevBtn.disabled = currentLogsPage <= 1;
+    if (nextBtn) nextBtn.disabled = currentLogsPage >= totalPages;
+
     if (filteredLogs.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد سجلات مطابقة</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filteredLogs.map(log => {
+    tbody.innerHTML = paginatedLogs.map(log => {
         // Highlight matched card in data
         let displayData = log.data || '-';
         if (cardSearch) {
@@ -599,23 +655,54 @@ function renderLogsTable() {
     }).join('');
 }
 
-// Event listeners for log filtering
+// Event listeners for log filtering and pagination
 document.addEventListener('DOMContentLoaded', () => {
     const cardSearch = document.getElementById('card-search');
     const typeFilter = document.getElementById('log-type-filter');
     const clearSearch = document.getElementById('clear-search');
+    const prevBtn = document.getElementById('logs-prev');
+    const nextBtn = document.getElementById('logs-next');
+    const perPageSelect = document.getElementById('logs-per-page');
 
     if (cardSearch) {
         cardSearch.addEventListener('input', () => {
+            currentLogsPage = 1; // Reset to first page on search
             setTimeout(renderLogsTable, 300); // Debounce
         });
     }
     if (typeFilter) {
-        typeFilter.addEventListener('change', renderLogsTable);
+        typeFilter.addEventListener('change', () => {
+            currentLogsPage = 1; // Reset to first page on filter
+            renderLogsTable();
+        });
     }
     if (clearSearch) {
         clearSearch.addEventListener('click', () => {
             document.getElementById('card-search').value = '';
+            currentLogsPage = 1;
+            renderLogsTable();
+        });
+    }
+
+    // Pagination controls
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentLogsPage > 1) {
+                currentLogsPage--;
+                renderLogsTable();
+            }
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentLogsPage++;
+            renderLogsTable();
+        });
+    }
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', (e) => {
+            logsPerPage = parseInt(e.target.value);
+            currentLogsPage = 1; // Reset to first page
             renderLogsTable();
         });
     }

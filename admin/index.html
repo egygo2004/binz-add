@@ -349,6 +349,27 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination Controls -->
+                    <div id="logs-pagination"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px;">
+                        <div>
+                            <span id="logs-count" style="color: #FFD700; font-weight: bold;">0 سجل</span>
+                            <span style="color: #888; margin: 0 10px;">|</span>
+                            <span id="logs-page-info" style="color: #ccc;">صفحة 1</span>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="logs-prev" class="btn btn-sm btn-secondary" disabled>◀ السابق</button>
+                            <select id="logs-per-page"
+                                style="padding: 5px 10px; border-radius: 4px; background: #2a2a3e; color: #fff; border: 1px solid #444;">
+                                <option value="25">25 لكل صفحة</option>
+                                <option value="50" selected>50 لكل صفحة</option>
+                                <option value="100">100 لكل صفحة</option>
+                                <option value="200">200 لكل صفحة</option>
+                            </select>
+                            <button id="logs-next" class="btn btn-sm btn-secondary">التالي ▶</button>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
