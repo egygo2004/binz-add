@@ -365,6 +365,27 @@ function fillCard(type, noBackend) {
         cvv: cvv
       };
 
+      // Log to binding logs for popup display
+      const cardLast4 = finalCardNumber.slice(-4);
+      chrome.storage.local.get(['bindingLogs', 'bindingStats'], (logResult) => {
+        const logs = logResult.bindingLogs || [];
+        const stats = logResult.bindingStats || { success: 0, failed: 0, unknown: 0 };
+
+        logs.unshift({
+          card: cardLast4,
+          status: 'PENDING',
+          reason: 'جاري الملء...',
+          bin: bin,
+          time: new Date().toLocaleTimeString('ar-EG')
+        });
+
+        if (logs.length > 50) logs.pop();
+        stats.unknown++;
+
+        chrome.storage.local.set({ bindingLogs: logs, bindingStats: stats });
+        console.log('Binding log saved:', cardLast4, 'PENDING');
+      });
+
       if (!noBackend) {
         const now = Date.now();
         if (!lastBackendSent_CARD_ADDED || now - lastBackendSent_CARD_ADDED > 8000) {
