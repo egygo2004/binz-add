@@ -2190,9 +2190,9 @@ function startAutoTry() {
       console.error('عنصر عداد Auto Try غير موجود');
     }
 
-    // Execute the active bin action
-    console.log('تنفيذ Active Bin...');
-    executeActiveBin();
+    // Execute the active bin action using the same method as manual button
+    console.log('تنفيذ fillCard action...');
+    chrome.runtime.sendMessage({ 'action': 'fillCard', 'type': 'active' });
   }, interval * 1000);
 }
 
