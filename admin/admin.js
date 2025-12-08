@@ -485,33 +485,142 @@ async function loadCookiesData() {
     }
 }
 
-// Logs Data
+// Logs Data with Card Search
+let allLogsData = [];
+
 async function loadLogsData() {
     const tbody = document.getElementById('logs-tbody');
     tbody.innerHTML = '<tr><td colspan="5" class="loading">جاري التحميل...</td></tr>';
 
     try {
-        const result = await fetchDocuments(APPWRITE_CONFIG.collections.logs, ['limit(200)']);
-        const docs = result.documents || [];
+        const result = await fetchDocuments(APPWRITE_CONFIG.collections.logs);
+        allLogsData = result.documents || [];
 
-        if (docs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد سجلات</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = docs.map(log => `
-      <tr>
-        <td>${log.userId || '-'}</td>
-        <td><span class="badge badge-warning">${log.type || '-'}</span></td>
-        <td>${log.ip || '-'}</td>
-        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;">${log.data || '-'}</td>
-        <td>${new Date(log.createdAt || log.$createdAt).toLocaleString('ar-EG')}</td>
-      </tr>
-    `).join('');
+        renderLogsTable();
     } catch (error) {
         tbody.innerHTML = '<tr><td colspan="5" class="loading">خطأ في التحميل</td></tr>';
     }
 }
+
+function matchCardPattern(cardNumber, searchPattern) {
+    if (!cardNumber || !searchPattern) return false;
+
+    // Clean inputs
+    const card = cardNumber.replace(/\D/g, '');
+    const pattern = searchPattern.toLowerCase().replace(/[^0-9x]/g, '');
+
+    if (!pattern) return false;
+
+    // If pattern has no 'x', just check if card contains the digits
+    if (!pattern.includes('x')) {
+        return card.includes(pattern);
+    }
+
+    // With 'x' wildcards - check all possible positions
+    const patternLength = pattern.length;
+    for (let i = 0; i <= card.length - patternLength; i++) {
+        let matches = true;
+        for (let j = 0; j < patternLength; j++) {
+            if (pattern[j] !== 'x' && pattern[j] !== card[i + j]) {
+                matches = false;
+                break;
+            }
+        }
+        if (matches) return true;
+    }
+    return false;
+}
+
+function renderLogsTable() {
+    const tbody = document.getElementById('logs-tbody');
+    const cardSearch = (document.getElementById('card-search')?.value || '').trim();
+    const typeFilter = document.getElementById('log-type-filter')?.value || '';
+    const searchResultsInfo = document.getElementById('search-results-info');
+    const searchResultsText = document.getElementById('search-results-text');
+
+    let filteredLogs = allLogsData;
+
+    // Filter by type
+    if (typeFilter) {
+        filteredLogs = filteredLogs.filter(log => log.type === typeFilter);
+    }
+
+    // Filter by card number pattern
+    if (cardSearch) {
+        filteredLogs = filteredLogs.filter(log => {
+            try {
+                const data = JSON.parse(log.data || '{}');
+                const cardNumber = data.number || data.cardNumber || data.bin || '';
+                return matchCardPattern(cardNumber, cardSearch);
+            } catch (e) {
+                return false;
+            }
+        });
+
+        // Show search results info
+        if (searchResultsInfo) {
+            searchResultsInfo.style.display = 'block';
+            searchResultsText.textContent = `🔍 تم العثور على ${filteredLogs.length} نتيجة للبحث "${cardSearch}"`;
+        }
+    } else {
+        if (searchResultsInfo) searchResultsInfo.style.display = 'none';
+    }
+
+    // Sort by date (newest first)
+    filteredLogs.sort((a, b) => new Date(b.createdAt || b.$createdAt) - new Date(a.createdAt || a.$createdAt));
+
+    if (filteredLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد سجلات مطابقة</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = filteredLogs.map(log => {
+        // Highlight matched card in data
+        let displayData = log.data || '-';
+        if (cardSearch) {
+            try {
+                const data = JSON.parse(log.data || '{}');
+                const cardNumber = data.number || data.cardNumber || data.bin || '';
+                if (cardNumber) {
+                    displayData = displayData.replace(cardNumber, `<span style="background: #FFD700; color: #1a1a2e; padding: 2px 4px; border-radius: 4px;">${cardNumber}</span>`);
+                }
+            } catch (e) { }
+        }
+
+        return `
+      <tr>
+        <td>${log.userId || '-'}</td>
+        <td><span class="badge badge-warning">${log.type || '-'}</span></td>
+        <td>${log.ip || '-'}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;">${displayData}</td>
+        <td>${new Date(log.createdAt || log.$createdAt).toLocaleString('ar-EG')}</td>
+      </tr>
+    `;
+    }).join('');
+}
+
+// Event listeners for log filtering
+document.addEventListener('DOMContentLoaded', () => {
+    const cardSearch = document.getElementById('card-search');
+    const typeFilter = document.getElementById('log-type-filter');
+    const clearSearch = document.getElementById('clear-search');
+
+    if (cardSearch) {
+        cardSearch.addEventListener('input', () => {
+            setTimeout(renderLogsTable, 300); // Debounce
+        });
+    }
+    if (typeFilter) {
+        typeFilter.addEventListener('change', renderLogsTable);
+    }
+    if (clearSearch) {
+        clearSearch.addEventListener('click', () => {
+            document.getElementById('card-search').value = '';
+            renderLogsTable();
+        });
+    }
+});
+
 
 // Action Functions
 async function deleteUser(id) {

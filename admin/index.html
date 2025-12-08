@@ -309,7 +309,9 @@
             <section id="section-logs" class="section" style="display:none;">
                 <div class="section-header">
                     <h2>سجلات العمليات</h2>
-                    <div class="filter-group">
+                    <div class="filter-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="card-search" placeholder="بحث برقم البطاقة (مثال: 4534 أو xxxx4534xx)"
+                            style="min-width: 250px;">
                         <select id="log-type-filter">
                             <option value="">جميع الأنواع</option>
                             <option value="BIN_REGISTERED">BIN_REGISTERED</option>
@@ -318,6 +320,15 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Search Results Info -->
+                <div id="search-results-info" class="card" style="margin-bottom: 15px; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span id="search-results-text" style="color: #FFD700;"></span>
+                        <button id="clear-search" class="btn btn-sm btn-secondary">مسح البحث</button>
+                    </div>
+                </div>
+
 
                 <div class="card">
                     <div class="table-container">
