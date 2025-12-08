@@ -1711,9 +1711,13 @@ async function login(username, password, deviceName) {
     });
 
     console.log('إرسال طلب تسجيل الدخول إلى Appwrite...');
+    console.log('البحث عن المستخدم:', username);
 
-    // Query user from Appwrite database
-    const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.users}/documents?queries[]=${encodeURIComponent(`equal("username", "${username}")`)}`;
+    // Query user from Appwrite database using correct format
+    const queryStr = JSON.stringify({ method: 'equal', attribute: 'username', values: [username] });
+    const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.users}/documents?queries[]=${encodeURIComponent(queryStr)}`;
+
+    console.log('Query URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',
