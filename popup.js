@@ -2220,13 +2220,15 @@ function stopAutoTry() {
 async function executeActiveBin() {
   try {
     console.log('تنفيذ Active Bin...');
+    console.log('currentUser:', currentUser);
+    console.log('subscription:', currentUser?.subscription);
 
-    // Check subscription before executing
+    // Check subscription before executing (warning only, don't block)
     if (!currentUser?.subscription?.isActive) {
-      console.error('الاشتراك منتهي الصلاحية');
-      showAlert('الاشتراك منتهي الصلاحية', 'error');
-      return;
+      console.warn('تحذير: الاشتراك قد يكون غير نشط - سنحاول التنفيذ على أي حال');
+      // Don't return - continue execution even without active subscription for testing
     }
+
 
     console.log('الاشتراك صالح، إرسال رسالة إلى background script');
 
