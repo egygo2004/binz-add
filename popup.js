@@ -1591,10 +1591,10 @@ async function pingBackend() {
     console.log('🔄 إرسال ping للباكند من الإضافة...');
     const startTime = Date.now();
 
-    // محاولة ping للباكند الجديد فقط
-    const authResponse = await fetch(AUTH_API_BASE_URL + '/health', {
+    // Ping Appwrite backend
+    const authResponse = await fetch(`${APPWRITE_CONFIG.endpoint}/health`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      headers: getAppwriteHeaders()
     });
 
     const endTime = Date.now();
@@ -1710,21 +1710,14 @@ async function login(username, password, deviceName) {
       });
     });
 
-    console.log('إرسال طلب تسجيل الدخول إلى:', `${AUTH_API_BASE_URL}/extension/verify`);
+    console.log('إرسال طلب تسجيل الدخول إلى Appwrite...');
 
-    // استخدام API الجديد المخصص لتسجيل الدخول فقط
-    const response = await fetch(`${AUTH_API_BASE_URL}/extension/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        deviceId,
-        deviceName: deviceName || 'Chrome Extension'
-      })
+    // Query user from Appwrite database
+    const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.users}/documents?queries[]=${encodeURIComponent(`equal("username", "${username}")`)}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getAppwriteHeaders()
     });
 
     console.log('استجابة الخادم:', response.status, response.statusText);
@@ -1732,28 +1725,63 @@ async function login(username, password, deviceName) {
     const data = await response.json();
     console.log('بيانات الاستجابة:', data);
 
-    if (response.ok && data.success) {
-      console.log('تم تسجيل الدخول بنجاح');
-      authToken = data.token;
-      currentUser = data.user;
+    if (response.ok && data.documents && data.documents.length > 0) {
+      const user = data.documents[0];
 
-      // Store in chrome.storage
-      await new Promise((resolve) => {
-        chrome.storage.local.set({
-          authToken: authToken,
-          currentUser: currentUser,
-          deviceId: deviceId
-        }, resolve);
-      });
+      // Check password (simple check for now)
+      if (user.password === password || !user.password) {
+        console.log('تم تسجيل الدخول بنجاح');
 
-      console.log('تم حفظ البيانات في التخزين المحلي');
-      showMainInterface();
-      await loadUserData();
-      showAlert('تم تسجيل الدخول بنجاح', 'success');
+        // Get subscription
+        const subUrl = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.subscriptions}/documents?queries[]=${encodeURIComponent(`equal("userId", "${user.userId}")`)}`;
+        const subResponse = await fetch(subUrl, { method: 'GET', headers: getAppwriteHeaders() });
+        const subData = await subResponse.json();
+
+        const subscription = subData.documents && subData.documents.length > 0 ? subData.documents[0] : null;
+
+        currentUser = {
+          ...user,
+          subscription: subscription ? {
+            isActive: subscription.isActive && new Date(subscription.expiryDate) > new Date(),
+            expiryDate: subscription.expiryDate,
+            plan: subscription.plan
+          } : null
+        };
+        authToken = user.$id;
+
+        // Update last login
+        await fetch(
+          `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.users}/documents/${user.$id}`,
+          {
+            method: 'PATCH',
+            headers: getAppwriteHeaders(),
+            body: JSON.stringify({ data: { lastLogin: new Date().toISOString() } })
+          }
+        );
+
+        // Store in chrome.storage
+        await new Promise((resolve) => {
+          chrome.storage.local.set({
+            authToken: authToken,
+            currentUser: currentUser,
+            userId: user.userId,
+            deviceId: deviceId
+          }, resolve);
+        });
+
+        console.log('تم حفظ البيانات في التخزين المحلي');
+        showMainInterface();
+        await loadUserData();
+        showAlert('تم تسجيل الدخول بنجاح', 'success');
+      } else {
+        console.error('كلمة المرور غير صحيحة');
+        showAlert('كلمة المرور غير صحيحة', 'error');
+        showLoginForm();
+      }
     } else {
-      console.error('فشل في تسجيل الدخول:', data.message || 'خطأ غير معروف');
-      showAlert(data.message || 'خطأ في تسجيل الدخول', 'error');
-      showLoginForm(); // إظهار نموذج تسجيل الدخول مرة أخرى
+      console.error('فشل في تسجيل الدخول: المستخدم غير موجود');
+      showAlert('المستخدم غير موجود', 'error');
+      showLoginForm();
     }
   } catch (error) {
     console.error('خطأ في تسجيل الدخول:', error);
@@ -1779,45 +1807,55 @@ async function verifyToken() {
 
     console.log('التحقق من صحة التوكن...');
 
-    // استخدام API الجديد للتحقق من التوكن
-    const response = await fetch(`${AUTH_API_BASE_URL}/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Accept': 'application/json'
+    // Verify user exists in Appwrite by document ID
+    const response = await fetch(
+      `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.users}/documents/${authToken}`,
+      {
+        method: 'GET',
+        headers: getAppwriteHeaders()
       }
-    });
+    );
 
     console.log('استجابة التحقق من التوكن:', response.status, response.statusText);
 
     if (response.ok) {
-      const data = await response.json();
+      const user = await response.json();
       console.log('التوكن صالح، تحديث بيانات المستخدم');
-      currentUser = data;
+
+      // Get subscription
+      const subUrl = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.subscriptions}/documents?queries[]=${encodeURIComponent(`equal("userId", "${user.userId}")`)}`;
+      const subResponse = await fetch(subUrl, { method: 'GET', headers: getAppwriteHeaders() });
+      const subData = await subResponse.json();
+
+      const subscription = subData.documents && subData.documents.length > 0 ? subData.documents[0] : null;
+
+      currentUser = {
+        ...user,
+        subscription: subscription ? {
+          isActive: subscription.isActive && new Date(subscription.expiryDate) > new Date(),
+          expiryDate: subscription.expiryDate,
+          plan: subscription.plan
+        } : null
+      };
+
       await new Promise((resolve) => {
         chrome.storage.local.set({ currentUser: currentUser }, resolve);
       });
       return true;
     } else {
       console.log('التوكن غير صالح، مسح البيانات المحفوظة');
-      // Token is invalid, clear storage
       await new Promise((resolve) => {
-        chrome.storage.local.remove(['authToken', 'currentUser'], resolve);
+        chrome.storage.local.remove(['authToken', 'currentUser', 'userId'], resolve);
       });
       return false;
     }
   } catch (error) {
     console.error('خطأ في التحقق من التوكن:', error);
-    console.error('تفاصيل الخطأ:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-    // في حالة خطأ في الاتصال، نعتبر التوكن صالح مؤقتاً
     console.log('خطأ في الاتصال، اعتبار التوكن صالح مؤقتاً');
     return true;
   }
 }
+
 
 async function logout() {
   try {

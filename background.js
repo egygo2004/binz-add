@@ -1300,10 +1300,10 @@ async function pingBackend() {
     console.log('🔄 إرسال ping للباكند من Background Script...');
     const startTime = Date.now();
 
-    // محاولة ping للباكند الجديد فقط
-    const authResponse = await fetch(AUTH_API_BASE_URL + '/health', {
+    // Ping Appwrite backend
+    const authResponse = await fetch(`${APPWRITE_CONFIG.endpoint}/health`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
+      headers: getAppwriteHeaders()
     });
 
     const endTime = Date.now();
@@ -1322,6 +1322,7 @@ async function pingBackend() {
     console.error('❌ خطأ في الاتصال بالباكند:', error.message);
   }
 }
+
 
 function startKeepAlivePing() {
   // إيقاف أي interval سابق
