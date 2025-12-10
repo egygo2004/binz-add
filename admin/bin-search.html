@@ -321,6 +321,49 @@
             border-radius: 50%;
             background: currentColor;
         }
+
+        .search-type-btn {
+            padding: 10px 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .search-type-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+        }
+
+        .search-type-btn.active {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1a1a2e;
+            border-color: #FFD700;
+            font-weight: bold;
+        }
+
+        .adv-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .adv-input:focus {
+            border-color: #FFD700;
+            outline: none;
+        }
+
+        .adv-input option {
+            background: #1a1a2e;
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -333,11 +376,81 @@
 
         <div class="search-header">
             <h1>🔍 بحث BIN</h1>
-            <p>ابحث عن بيانات BIN واعرض البينات المشابهه في نفس الدولة أو في دول أخرى</p>
+            <p>ابحث عن بيانات BIN بمختلف الطرق - برقم BIN، اسم البنك، الدولة، وأكثر</p>
 
-            <div class="search-box">
-                <input type="text" id="bin-search-input" placeholder="أدخل رقم BIN (مثال: 450979)" maxlength="8">
-                <button id="search-btn" onclick="searchBIN()">🔍 بحث</button>
+            <!-- Search Type Selector -->
+            <div style="display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
+                <button class="search-type-btn active" data-type="bin" onclick="setSearchType('bin')">🔢 رقم
+                    BIN</button>
+                <button class="search-type-btn" data-type="bank" onclick="setSearchType('bank')">🏦 اسم البنك</button>
+                <button class="search-type-btn" data-type="country" onclick="setSearchType('country')">🌍
+                    الدولة</button>
+                <button class="search-type-btn" data-type="brand" onclick="setSearchType('brand')">💳 العلامة
+                    التجارية</button>
+                <button class="search-type-btn" data-type="combo" onclick="setSearchType('combo')">🔗 مركب
+                    (VISA-DEBIT-GOLD)</button>
+                <button class="search-type-btn" data-type="advanced" onclick="setSearchType('advanced')">⚙️ بحث
+                    متقدم</button>
+            </div>
+
+            <!-- Simple Search Box -->
+            <div class="search-box" id="simple-search">
+                <input type="text" id="search-input" placeholder="أدخل رقم BIN (مثال: 450979)" maxlength="50">
+                <button id="search-btn" onclick="performSearch()">🔍 بحث</button>
+            </div>
+
+            <!-- Advanced Search Panel -->
+            <div id="advanced-search"
+                style="display: none; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-top: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">رقم BIN</label>
+                        <input type="text" id="adv-bin" class="adv-input" placeholder="450979" maxlength="8">
+                    </div>
+                    <div>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">اسم البنك</label>
+                        <input type="text" id="adv-bank" class="adv-input" placeholder="مثال: BANK OF AMERICA">
+                    </div>
+                    <div>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">الدولة</label>
+                        <input type="text" id="adv-country" class="adv-input" placeholder="مثال: UNITED STATES">
+                    </div>
+                    <div>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">العلامة التجارية</label>
+                        <select id="adv-brand" class="adv-input">
+                            <option value="">-- الكل --</option>
+                            <option value="VISA">VISA</option>
+                            <option value="MASTERCARD">MASTERCARD</option>
+                            <option value="AMERICAN EXPRESS">AMERICAN EXPRESS</option>
+                            <option value="DISCOVER">DISCOVER</option>
+                            <option value="JCB">JCB</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">نوع البطاقة</label>
+                        <select id="adv-cardType" class="adv-input">
+                            <option value="">-- الكل --</option>
+                            <option value="CREDIT">CREDIT</option>
+                            <option value="DEBIT">DEBIT</option>
+                            <option value="PREPAID">PREPAID</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">الدرجة</label>
+                        <select id="adv-grade" class="adv-input">
+                            <option value="">-- الكل --</option>
+                            <option value="CLASSIC">CLASSIC</option>
+                            <option value="GOLD">GOLD</option>
+                            <option value="PLATINUM">PLATINUM</option>
+                            <option value="SIGNATURE">SIGNATURE</option>
+                            <option value="INFINITE">INFINITE</option>
+                            <option value="BUSINESS">BUSINESS</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="performAdvancedSearch()"
+                    style="margin-top: 20px; padding: 12px 40px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a2e; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px;">🔍
+                    بحث متقدم</button>
             </div>
 
             <div class="db-status connected" id="db-status">
@@ -701,13 +814,203 @@
             }
         }
 
+        // Current search type
+        let currentSearchType = 'bin';
+
+        // Set search type
+        function setSearchType(type) {
+            currentSearchType = type;
+
+            // Update button styles
+            document.querySelectorAll('.search-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+            // Show/hide search boxes
+            const simpleSearch = document.getElementById('simple-search');
+            const advancedSearch = document.getElementById('advanced-search');
+            const searchInput = document.getElementById('search-input');
+
+            if (type === 'advanced') {
+                simpleSearch.style.display = 'none';
+                advancedSearch.style.display = 'block';
+            } else {
+                simpleSearch.style.display = 'flex';
+                advancedSearch.style.display = 'none';
+
+                // Update placeholder based on type
+                const placeholders = {
+                    'bin': 'أدخل رقم BIN (مثال: 450979)',
+                    'bank': 'أدخل اسم البنك (مثال: BANK OF AMERICA)',
+                    'country': 'أدخل اسم الدولة (مثال: UNITED STATES)',
+                    'brand': 'أدخل العلامة التجارية (مثال: VISA)',
+                    'combo': 'أدخل: BRAND - CARDTYPE - GRADE (مثال: MASTERCARD - DEBIT - STANDARD)'
+                };
+                searchInput.placeholder = placeholders[type] || placeholders['bin'];
+                searchInput.maxLength = type === 'combo' ? 100 : 50;
+            }
+        }
+
+        // Perform simple search based on type
+        async function performSearch() {
+            const searchValue = document.getElementById('search-input').value.trim().toUpperCase();
+
+            if (!searchValue) {
+                alert('الرجاء إدخال قيمة للبحث');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('no-results').style.display = 'none';
+
+            try {
+                let queries = [];
+
+                switch (currentSearchType) {
+                    case 'bin':
+                        queries = [{ "method": "equal", "attribute": "bin", "values": [searchValue] }];
+                        break;
+                    case 'bank':
+                        queries = [
+                            { "method": "search", "attribute": "bank", "values": [searchValue] },
+                            { "method": "limit", "values": [100] }
+                        ];
+                        break;
+                    case 'country':
+                        queries = [
+                            { "method": "equal", "attribute": "country", "values": [searchValue] },
+                            { "method": "limit", "values": [100] }
+                        ];
+                        break;
+                    case 'brand':
+                        queries = [
+                            { "method": "equal", "attribute": "brand", "values": [searchValue] },
+                            { "method": "limit", "values": [100] }
+                        ];
+                        break;
+                    case 'combo':
+                        // Parse BRAND - CARDTYPE - GRADE format
+                        const parts = searchValue.split('-').map(p => p.trim()).filter(p => p);
+                        if (parts.length >= 1) {
+                            queries.push({ "method": "equal", "attribute": "brand", "values": [parts[0]] });
+                        }
+                        if (parts.length >= 2) {
+                            queries.push({ "method": "equal", "attribute": "cardType", "values": [parts[1]] });
+                        }
+                        if (parts.length >= 3) {
+                            queries.push({ "method": "equal", "attribute": "grade", "values": [parts[2]] });
+                        }
+                        queries.push({ "method": "limit", "values": [100] });
+                        break;
+                }
+
+                const result = await searchInAppwrite(queries);
+                const results = result.documents || [];
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (results.length === 0) {
+                    document.getElementById('no-results').style.display = 'block';
+                    return;
+                }
+
+                // For non-BIN searches, display as a list
+                if (currentSearchType !== 'bin') {
+                    displaySearchResults(searchValue, results, currentSearchType);
+                } else {
+                    await displayResults(searchValue, results);
+                }
+
+            } catch (error) {
+                console.error('Search error:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('no-results').style.display = 'block';
+            }
+        }
+
+        // Perform advanced search
+        async function performAdvancedSearch() {
+            const bin = document.getElementById('adv-bin').value.trim();
+            const bank = document.getElementById('adv-bank').value.trim().toUpperCase();
+            const country = document.getElementById('adv-country').value.trim().toUpperCase();
+            const brand = document.getElementById('adv-brand').value;
+            const cardType = document.getElementById('adv-cardType').value;
+            const grade = document.getElementById('adv-grade').value;
+
+            // Build queries
+            let queries = [];
+
+            if (bin) queries.push({ "method": "equal", "attribute": "bin", "values": [bin] });
+            if (bank) queries.push({ "method": "search", "attribute": "bank", "values": [bank] });
+            if (country) queries.push({ "method": "equal", "attribute": "country", "values": [country] });
+            if (brand) queries.push({ "method": "equal", "attribute": "brand", "values": [brand] });
+            if (cardType) queries.push({ "method": "equal", "attribute": "cardType", "values": [cardType] });
+            if (grade) queries.push({ "method": "equal", "attribute": "grade", "values": [grade] });
+
+            if (queries.length === 0) {
+                alert('الرجاء إدخال معيار بحث واحد على الأقل');
+                return;
+            }
+
+            // Add limit
+            queries.push({ "method": "limit", "values": [100] });
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('no-results').style.display = 'none';
+
+            try {
+                const result = await searchInAppwrite(queries);
+                const results = result.documents || [];
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (results.length === 0) {
+                    document.getElementById('no-results').style.display = 'block';
+                    return;
+                }
+
+                displaySearchResults('بحث متقدم', results, 'advanced');
+
+            } catch (error) {
+                console.error('Advanced search error:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('no-results').style.display = 'block';
+            }
+        }
+
+        // Display search results for non-BIN searches
+        function displaySearchResults(searchTerm, results, searchType) {
+            document.getElementById('results-container').style.display = 'block';
+
+            // Update header
+            document.getElementById('bin-number').textContent = `${results.length} نتيجة`;
+            document.getElementById('found-files').textContent = searchType === 'bank' ? '🏦 بنك' :
+                searchType === 'country' ? '🌍 دولة' :
+                    searchType === 'brand' ? '💳 علامة' : '⚙️ متقدم';
+
+            // Hide similar sections for non-BIN searches
+            document.getElementById('same-country-section').style.display = 'none';
+            document.getElementById('other-countries-section').style.display = 'none';
+
+            // Display results in main section
+            displaySimilarBins('bin-info-grids', results, '', true);
+        }
+
         // Enter key support
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('bin-search-input').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    searchBIN();
-                }
-            });
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        performSearch();
+                    }
+                });
+            }
 
             // Check database connection
             checkDbConnection();
