@@ -479,6 +479,22 @@
                         <div class="label">موجود في</div>
                     </div>
                 </div>
+
+                <!-- Sort Controls -->
+                <div id="sort-controls"
+                    style="display: none; margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                    <label style="color: #FFD700; margin-left: 10px;">🔃 ترتيب حسب:</label>
+                    <select id="sort-select" onchange="applySorting()"
+                        style="padding: 10px 15px; background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 8px; color: #fff; cursor: pointer;">
+                        <option value="count-desc">📊 العدد (الأعلى ← الأقل)</option>
+                        <option value="count-asc">📊 العدد (الأقل ← الأعلى)</option>
+                        <option value="bin-asc">🔢 رقم BIN (تصاعدي)</option>
+                        <option value="bin-desc">🔢 رقم BIN (تنازلي)</option>
+                        <option value="country-asc">🌍 الدولة (أ-ي)</option>
+                        <option value="bank-asc">🏦 البنك (أ-ي)</option>
+                    </select>
+                </div>
+
                 <div id="bin-info-grids"></div>
             </div>
 
@@ -991,11 +1007,17 @@
             }
         }
 
+        // Store current search results for re-sorting
+        let currentSearchResults = [];
+
         // Display search results for non-BIN searches
         function displaySearchResults(searchTerm, results, searchType) {
             document.getElementById('results-container').style.display = 'block';
 
-            // Sort results by count (highest to lowest)
+            // Store results for re-sorting
+            currentSearchResults = [...results];
+
+            // Sort results by count (highest to lowest) by default
             results.sort((a, b) => (b.count || 0) - (a.count || 0));
 
             // Update header
@@ -1006,14 +1028,50 @@
                         searchType === 'combo' ? '🔗 مركب' :
                             searchType === 'grade' ? '⭐ درجة' : '⚙️ متقدم';
 
+            // Show sort controls
+            document.getElementById('sort-controls').style.display = 'block';
+            document.getElementById('sort-select').value = 'count-desc';
+
             // Hide similar sections for non-BIN searches
             document.getElementById('same-country-section').style.display = 'none';
             document.getElementById('other-countries-section').style.display = 'none';
 
-            // Display results in main section with sort indicator
-            document.getElementById('bin-info-grids').innerHTML = `
-                <p style="color: #FFD700; margin-bottom: 15px;">📊 النتائج مرتبة حسب العدد من الأعلى للأقل</p>
-            `;
+            // Display results
+            renderSortedResults(results);
+        }
+
+        // Apply sorting based on dropdown selection
+        function applySorting() {
+            const sortValue = document.getElementById('sort-select').value;
+            let sortedResults = [...currentSearchResults];
+
+            switch (sortValue) {
+                case 'count-desc':
+                    sortedResults.sort((a, b) => (b.count || 0) - (a.count || 0));
+                    break;
+                case 'count-asc':
+                    sortedResults.sort((a, b) => (a.count || 0) - (b.count || 0));
+                    break;
+                case 'bin-asc':
+                    sortedResults.sort((a, b) => (a.bin || '').localeCompare(b.bin || ''));
+                    break;
+                case 'bin-desc':
+                    sortedResults.sort((a, b) => (b.bin || '').localeCompare(a.bin || ''));
+                    break;
+                case 'country-asc':
+                    sortedResults.sort((a, b) => (a.country || '').localeCompare(b.country || ''));
+                    break;
+                case 'bank-asc':
+                    sortedResults.sort((a, b) => (a.bank || '').localeCompare(b.bank || ''));
+                    break;
+            }
+
+            renderSortedResults(sortedResults);
+        }
+
+        // Render sorted results
+        function renderSortedResults(results) {
+            document.getElementById('bin-info-grids').innerHTML = '';
             displaySimilarBins('bin-info-grids', results, '', true, true);
         }
 
