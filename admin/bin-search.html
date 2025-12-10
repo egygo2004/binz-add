@@ -387,6 +387,7 @@
                     الدولة</button>
                 <button class="search-type-btn" data-type="brand" onclick="setSearchType('brand')">💳 العلامة
                     التجارية</button>
+                <button class="search-type-btn" data-type="grade" onclick="setSearchType('grade')">⭐ الدرجة</button>
                 <button class="search-type-btn" data-type="combo" onclick="setSearchType('combo')">🔗 مركب
                     (VISA-DEBIT-GOLD)</button>
                 <button class="search-type-btn" data-type="advanced" onclick="setSearchType('advanced')">⚙️ بحث
@@ -845,6 +846,7 @@
                     'bank': 'أدخل اسم البنك (مثال: BANK OF AMERICA)',
                     'country': 'أدخل اسم الدولة (مثال: UNITED STATES)',
                     'brand': 'أدخل العلامة التجارية (مثال: VISA)',
+                    'grade': 'أدخل الدرجة (مثال: GOLD, PLATINUM, CLASSIC)',
                     'combo': 'أدخل: BRAND - CARDTYPE - GRADE (مثال: MASTERCARD - DEBIT - STANDARD)'
                 };
                 searchInput.placeholder = placeholders[type] || placeholders['bin'];
@@ -888,6 +890,12 @@
                     case 'brand':
                         queries = [
                             { "method": "equal", "attribute": "brand", "values": [searchValue] },
+                            { "method": "limit", "values": [100] }
+                        ];
+                        break;
+                    case 'grade':
+                        queries = [
+                            { "method": "equal", "attribute": "grade", "values": [searchValue] },
                             { "method": "limit", "values": [100] }
                         ];
                         break;
@@ -987,18 +995,26 @@
         function displaySearchResults(searchTerm, results, searchType) {
             document.getElementById('results-container').style.display = 'block';
 
+            // Sort results by count (highest to lowest)
+            results.sort((a, b) => (b.count || 0) - (a.count || 0));
+
             // Update header
             document.getElementById('bin-number').textContent = `${results.length} نتيجة`;
             document.getElementById('found-files').textContent = searchType === 'bank' ? '🏦 بنك' :
                 searchType === 'country' ? '🌍 دولة' :
-                    searchType === 'brand' ? '💳 علامة' : '⚙️ متقدم';
+                    searchType === 'brand' ? '💳 علامة' :
+                        searchType === 'combo' ? '🔗 مركب' :
+                            searchType === 'grade' ? '⭐ درجة' : '⚙️ متقدم';
 
             // Hide similar sections for non-BIN searches
             document.getElementById('same-country-section').style.display = 'none';
             document.getElementById('other-countries-section').style.display = 'none';
 
-            // Display results in main section
-            displaySimilarBins('bin-info-grids', results, '', true);
+            // Display results in main section with sort indicator
+            document.getElementById('bin-info-grids').innerHTML = `
+                <p style="color: #FFD700; margin-bottom: 15px;">📊 النتائج مرتبة حسب العدد من الأعلى للأقل</p>
+            `;
+            displaySimilarBins('bin-info-grids', results, '', true, true);
         }
 
         // Enter key support
