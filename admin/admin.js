@@ -130,7 +130,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
             if (testResponse) {
                 isLoggedIn = true;
-                sessionStorage.setItem('adminLoggedIn', 'true');
+                localStorage.setItem('adminLoggedIn', 'true');
                 showDashboard();
             }
         } catch (error) {
@@ -156,7 +156,7 @@ function showDashboard() {
 // Logout Handler
 document.getElementById('logout-btn').addEventListener('click', () => {
     isLoggedIn = false;
-    sessionStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminLoggedIn');
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
 });
@@ -1016,7 +1016,7 @@ document.getElementById('log-type-filter').addEventListener('change', async (e) 
 
 // Check for existing session
 document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+    if (localStorage.getItem('adminLoggedIn') === 'true') {
         showDashboard();
     }
 });
