@@ -410,11 +410,15 @@
                     </div>
                     <div>
                         <label style="display: block; color: #888; margin-bottom: 5px;">اسم البنك</label>
-                        <input type="text" id="adv-bank" class="adv-input" placeholder="مثال: BANK OF AMERICA">
+                        <select id="adv-bank" class="adv-input">
+                            <option value="">-- جاري التحميل... --</option>
+                        </select>
                     </div>
                     <div>
                         <label style="display: block; color: #888; margin-bottom: 5px;">الدولة</label>
-                        <input type="text" id="adv-country" class="adv-input" placeholder="مثال: UNITED STATES">
+                        <select id="adv-country" class="adv-input">
+                            <option value="">-- جاري التحميل... --</option>
+                        </select>
                     </div>
                     <div>
                         <label style="display: block; color: #888; margin-bottom: 5px;">العلامة التجارية</label>
@@ -439,13 +443,7 @@
                     <div>
                         <label style="display: block; color: #888; margin-bottom: 5px;">الدرجة</label>
                         <select id="adv-grade" class="adv-input">
-                            <option value="">-- الكل --</option>
-                            <option value="CLASSIC">CLASSIC</option>
-                            <option value="GOLD">GOLD</option>
-                            <option value="PLATINUM">PLATINUM</option>
-                            <option value="SIGNATURE">SIGNATURE</option>
-                            <option value="INFINITE">INFINITE</option>
-                            <option value="BUSINESS">BUSINESS</option>
+                            <option value="">-- جاري التحميل... --</option>
                         </select>
                     </div>
                 </div>
@@ -964,13 +962,13 @@
         // Perform advanced search
         async function performAdvancedSearch() {
             const bin = document.getElementById('adv-bin').value.trim();
-            const bank = document.getElementById('adv-bank').value.trim().toUpperCase();
-            const country = document.getElementById('adv-country').value.trim().toUpperCase();
+            const bank = document.getElementById('adv-bank').value;
+            const country = document.getElementById('adv-country').value;
             const brand = document.getElementById('adv-brand').value;
             const cardType = document.getElementById('adv-cardType').value;
             const grade = document.getElementById('adv-grade').value;
 
-            // Build queries
+            // Build queries - empty values fetch all
             let queries = [];
 
             if (bin) queries.push({ "method": "equal", "attribute": "bin", "values": [bin] });
@@ -1081,6 +1079,63 @@
             displaySimilarBins('bin-info-grids', results, '', true, true);
         }
 
+        // Load dropdown options from database
+        async function loadDropdownOptions() {
+            try {
+                // Fetch a sample of documents to get unique values
+                const result = await searchInAppwrite([
+                    { "method": "limit", "values": [5000] }
+                ]);
+                const documents = result.documents || [];
+
+                // Extract unique values
+                const countries = new Set();
+                const banks = new Set();
+                const grades = new Set();
+
+                documents.forEach(doc => {
+                    if (doc.country) countries.add(doc.country);
+                    if (doc.bank) banks.add(doc.bank);
+                    if (doc.grade) grades.add(doc.grade);
+                });
+
+                // Sort alphabetically
+                const sortedCountries = [...countries].sort();
+                const sortedBanks = [...banks].sort();
+                const sortedGrades = [...grades].sort();
+
+                // Populate country dropdown
+                const countrySelect = document.getElementById('adv-country');
+                countrySelect.innerHTML = '<option value="">-- الكل --</option>';
+                sortedCountries.forEach(country => {
+                    countrySelect.innerHTML += `<option value="${country}">${country}</option>`;
+                });
+
+                // Populate bank dropdown
+                const bankSelect = document.getElementById('adv-bank');
+                bankSelect.innerHTML = '<option value="">-- الكل --</option>';
+                sortedBanks.forEach(bank => {
+                    bankSelect.innerHTML += `<option value="${bank}">${bank}</option>`;
+                });
+
+                // Populate grade dropdown
+                const gradeSelect = document.getElementById('adv-grade');
+                gradeSelect.innerHTML = '<option value="">-- الكل --</option>';
+                sortedGrades.forEach(grade => {
+                    gradeSelect.innerHTML += `<option value="${grade}">${grade}</option>`;
+                });
+
+                console.log(`Loaded: ${sortedCountries.length} countries, ${sortedBanks.length} banks, ${sortedGrades.length} grades`);
+
+            } catch (error) {
+                console.error('Error loading dropdown options:', error);
+                // Set fallback options
+                document.getElementById('adv-country').innerHTML = '<option value="">-- خطأ في التحميل --</option>';
+                document.getElementById('adv-bank').innerHTML = '<option value="">-- خطأ في التحميل --</option>';
+                document.getElementById('adv-grade').innerHTML = '<option value="">-- خطأ في التحميل --</option>';
+            }
+        }
+
         // Enter key support
         document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('search-input');
@@ -1094,6 +1149,9 @@
 
             // Check database connection
             checkDbConnection();
+
+            // Load dropdown options
+            loadDropdownOptions();
         });
     </script>
 </body>
