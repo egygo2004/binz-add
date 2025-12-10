@@ -1082,27 +1082,43 @@
         // Load dropdown options from database
         async function loadDropdownOptions() {
             try {
-                // Fetch a sample of documents to get unique values
-                const result = await searchInAppwrite([
-                    { "method": "limit", "values": [5000] }
-                ]);
-                const documents = result.documents || [];
-
-                // Extract unique values
                 const countries = new Set();
                 const banks = new Set();
                 const grades = new Set();
 
-                documents.forEach(doc => {
-                    if (doc.country) countries.add(doc.country);
-                    if (doc.bank) banks.add(doc.bank);
-                    if (doc.grade) grades.add(doc.grade);
-                });
+                let offset = 0;
+                const batchSize = 5000;
+                let hasMore = true;
 
-                // Sort alphabetically
-                const sortedCountries = [...countries].sort();
-                const sortedBanks = [...banks].sort();
-                const sortedGrades = [...grades].sort();
+                // Fetch all documents in batches
+                while (hasMore) {
+                    const result = await searchInAppwrite([
+                        { "method": "limit", "values": [batchSize] },
+                        { "method": "offset", "values": [offset] }
+                    ]);
+                    const documents = result.documents || [];
+
+                    // Extract unique values
+                    documents.forEach(doc => {
+                        if (doc.country) countries.add(doc.country);
+                        if (doc.bank) banks.add(doc.bank);
+                        if (doc.grade) grades.add(doc.grade);
+                    });
+
+                    // Check if there are more documents
+                    if (documents.length < batchSize) {
+                        hasMore = false;
+                    } else {
+                        offset += batchSize;
+                    }
+
+                    console.log(`Loaded batch: offset ${offset}, got ${documents.length} docs`);
+                }
+
+                // Sort alphabetically (A-Z)
+                const sortedCountries = [...countries].sort((a, b) => a.localeCompare(b));
+                const sortedBanks = [...banks].sort((a, b) => a.localeCompare(b));
+                const sortedGrades = [...grades].sort((a, b) => a.localeCompare(b));
 
                 // Populate country dropdown
                 const countrySelect = document.getElementById('adv-country');
