@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بحث BIN - Doc_HEMA Team</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        /* BIN Search Specific Styles */
+        .bin-search-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .search-header h1 {
+            color: #FFD700;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .search-header p {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input[type="text"] {
+            width: 350px;
+            padding: 15px 20px;
+            font-size: 18px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input[type="text"]:focus {
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            outline: none;
+        }
+
+        .search-box button {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .search-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .search-box button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .result-card h3 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bin-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .bin-info-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border-right: 3px solid #FFD700;
+        }
+
+        .bin-info-item label {
+            display: block;
+            color: #888;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .bin-info-item span {
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .similar-bins-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .similar-bins-table th,
+        .similar-bins-table td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .similar-bins-table th {
+            background: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        .similar-bins-table tr:hover {
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .file-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .file-badge.luozi {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .file-badge.quanzi {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #888;
+        }
+
+        .no-results .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading-spinner .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 215, 0, 0.2);
+            border-top-color: #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #FFD700;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 215, 0, 0.2);
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .stat-box .value {
+            font-size: 2em;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .stat-box .label {
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+            margin: 30px 0;
+        }
+
+        .country-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .grade-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .grade-tag.platinum {
+            background: rgba(192, 192, 192, 0.2);
+            color: #c0c0c0;
+        }
+
+        .grade-tag.gold {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+        }
+
+        .grade-tag.classic {
+            background: rgba(52, 73, 94, 0.3);
+            color: #95a5a6;
+        }
+
+        .grade-tag.signature {
+            background: rgba(155, 89, 182, 0.2);
+            color: #9b59b6;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+
+        .db-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+
+        .db-status.connected {
+            background: rgba(39, 174, 96, 0.2);
+            color: #27ae60;
+        }
+
+        .db-status.error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .db-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bin-search-container">
+        <a href="index.html" class="back-link">
+            <span>→</span>
+            العودة للوحة التحكم
+        </a>
+
+        <div class="search-header">
+            <h1>🔍 بحث BIN</h1>
+            <p>ابحث عن بيانات BIN واعرض البينات المشابهه في نفس الدولة أو في دول أخرى</p>
+
+            <div class="search-box">
+                <input type="text" id="bin-search-input" placeholder="أدخل رقم BIN (مثال: 450979)" maxlength="8">
+                <button id="search-btn" onclick="searchBIN()">🔍 بحث</button>
+            </div>
+
+            <div class="db-status connected" id="db-status">
+                <span class="dot"></span>
+                <span id="db-status-text">متصل بقاعدة البيانات</span>
+            </div>
+        </div>
+
+        <div id="loading" class="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+            <p style="color: #888;">جاري البحث في قاعدة البيانات...</p>
+        </div>
+
+        <div id="results-container" class="results-section" style="display: none;">
+            <!-- BIN Info -->
+            <div id="bin-details" class="result-card">
+                <h3>📊 تفاصيل BIN</h3>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="value" id="bin-number">-</div>
+                        <div class="label">رقم BIN</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="found-files">-</div>
+                        <div class="label">موجود في</div>
+                    </div>
+                </div>
+                <div id="bin-info-grids"></div>
+            </div>
+
+            <!-- Similar BINs in Same Country -->
+            <div id="same-country-section" class="result-card">
+                <h3>🏦 BINs مشابهة في نفس الدولة (نفس البنك + الدرجة)</h3>
+                <div id="same-country-content"></div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Similar BINs in Other Countries -->
+            <div id="other-countries-section" class="result-card">
+                <h3>🌍 BINs مشابهة في دول أخرى (نفس النوع + العلامة + الدرجة)</h3>
+                <div id="other-countries-content"></div>
+            </div>
+        </div>
+
+        <div id="no-results" class="no-results" style="display: none;">
+            <div class="icon">🔍</div>
+            <h2>لم يتم العثور على نتائج</h2>
+            <p>تأكد من إدخال رقم BIN صحيح</p>
+        </div>
+    </div>
+
+    <script>
+        // Appwrite Configuration
+        const APPWRITE_CONFIG = {
+            endpoint: 'https://nyc.cloud.appwrite.io/v1',
+            projectId: '693631c8001ac4fbc231',
+            databaseId: '69363201001bc7a64088',
+            collectionId: 'bin_database',
+            apiSecret: 'standard_917cef86aef581038cb102a0b6d645aa4574cdccefe56659604f22954dba8b1213ac7a0172d73857e904188fba17e8574f23cfb1f4393301aae31c20b8213b086293b0f8c0f3a581e0862ef5db10ad03b749561368f61778ddf118941af5137eeae8ffc196cdb3f3b8a4ac489dd99a67a059fdfc00afad2893b8858a9ca904e3'
+        };
+
+        // Get headers for API requests
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'X-Appwrite-Project': APPWRITE_CONFIG.projectId,
+                'X-Appwrite-Key': APPWRITE_CONFIG.apiSecret
+            };
+        }
+
+        // Search BINs in Appwrite
+        async function searchInAppwrite(query) {
+            const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collectionId}/documents?queries[]=${encodeURIComponent(query)}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch from database');
+            }
+
+            return await response.json();
+        }
+
+        // Get BINs by exact BIN number
+        async function getBinByNumber(binNumber) {
+            return await searchInAppwrite(`equal("bin", "${binNumber}")`);
+        }
+
+        // Get similar BINs (same bank + grade + country)
+        async function getSimilarBinsSameCountry(country, bank, grade) {
+            const queries = [
+                `queries[]=${encodeURIComponent(`equal("country", "${country}")`)}`,
+                `queries[]=${encodeURIComponent(`equal("bank", "${bank}")`)}`,
+                `queries[]=${encodeURIComponent(`equal("grade", "${grade}")`)}`,
+                `queries[]=${encodeURIComponent(`limit(100)`)}`
+            ].join('&');
+
+            const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collectionId}/documents?${queries}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getHeaders()
+            });
+
+            if (!response.ok) {
+                return { documents: [] };
+            }
+
+            return await response.json();
+        }
+
+        // Get similar BINs in other countries (same cardType + brand + grade)
+        async function getSimilarBinsOtherCountries(cardType, brand, grade, excludeCountry) {
+            const queries = [
+                `queries[]=${encodeURIComponent(`equal("cardType", "${cardType}")`)}`,
+                `queries[]=${encodeURIComponent(`equal("brand", "${brand}")`)}`,
+                `queries[]=${encodeURIComponent(`equal("grade", "${grade}")`)}`,
+                `queries[]=${encodeURIComponent(`notEqual("country", "${excludeCountry}")`)}`,
+                `queries[]=${encodeURIComponent(`limit(100)`)}`
+            ].join('&');
+
+            const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collectionId}/documents?${queries}`;
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getHeaders()
+            });
+
+            if (!response.ok) {
+                return { documents: [] };
+            }
+
+            return await response.json();
+        }
+
+        // Search for BIN
+        async function searchBIN() {
+            const binInput = document.getElementById('bin-search-input').value.trim();
+
+            if (!binInput) {
+                alert('الرجاء إدخال رقم BIN');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('no-results').style.display = 'none';
+
+            try {
+                // Search for exact BIN
+                const result = await getBinByNumber(binInput);
+                const results = result.documents || [];
+
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+
+                if (results.length === 0) {
+                    document.getElementById('no-results').style.display = 'block';
+                    return;
+                }
+
+                // Show results
+                await displayResults(binInput, results);
+
+            } catch (error) {
+                console.error('Search error:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('no-results').style.display = 'block';
+                updateDbStatus(false, 'خطأ في الاتصال بقاعدة البيانات');
+            }
+        }
+
+        // Display results
+        async function displayResults(bin, results) {
+            document.getElementById('results-container').style.display = 'block';
+
+            // BIN Number
+            document.getElementById('bin-number').textContent = bin;
+
+            // Found in files
+            const filesFound = [];
+            if (results.some(r => r.source === 'luozi')) filesFound.push('裸资');
+            if (results.some(r => r.source === 'quanzi')) filesFound.push('全资');
+            document.getElementById('found-files').textContent = filesFound.join(' + ') || '-';
+
+            // BIN Info Grids
+            let infoGridHtml = '';
+            results.forEach((item) => {
+                infoGridHtml += `
+                    <div style="margin-bottom: 20px;">
+                        <span class="file-badge ${item.source === 'luozi' ? 'luozi' : 'quanzi'}">
+                            ${item.source === 'luozi' ? '裸资' : '全资'}
+                        </span>
+                        <div class="bin-info-grid" style="margin-top: 10px;">
+                            <div class="bin-info-item">
+                                <label>الدولة</label>
+                                <span>${item.country || '-'}</span>
+                            </div>
+                            <div class="bin-info-item">
+                                <label>نوع البطاقة</label>
+                                <span>${item.cardType || '-'}</span>
+                            </div>
+                            <div class="bin-info-item">
+                                <label>العلامة التجارية</label>
+                                <span>${item.brand || '-'}</span>
+                            </div>
+                            <div class="bin-info-item">
+                                <label>التصنيف/الدرجة</label>
+                                <span>${item.grade || '-'}</span>
+                            </div>
+                            <div class="bin-info-item">
+                                <label>البنك</label>
+                                <span>${item.bank || '-'}</span>
+                            </div>
+                            <div class="bin-info-item">
+                                <label>العدد</label>
+                                <span>${item.count || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('bin-info-grids').innerHTML = infoGridHtml;
+
+            // Get main result for similarity search
+            const mainResult = results[0];
+
+            // Find similar BINs in same country
+            try {
+                const sameCountryResult = await getSimilarBinsSameCountry(
+                    mainResult.country,
+                    mainResult.bank,
+                    mainResult.grade
+                );
+                const sameCountryBins = (sameCountryResult.documents || [])
+                    .filter(item => item.bin !== bin);
+                displaySimilarBins('same-country-content', sameCountryBins, bin);
+            } catch (error) {
+                document.getElementById('same-country-content').innerHTML =
+                    '<p style="color: #888; text-align: center; padding: 30px;">خطأ في جلب البيانات</p>';
+            }
+
+            // Find similar BINs in other countries
+            try {
+                const otherCountriesResult = await getSimilarBinsOtherCountries(
+                    mainResult.cardType,
+                    mainResult.brand,
+                    mainResult.grade,
+                    mainResult.country
+                );
+                const otherCountriesBins = (otherCountriesResult.documents || [])
+                    .filter(item => item.bin !== bin);
+                displaySimilarBins('other-countries-content', otherCountriesBins, bin);
+            } catch (error) {
+                document.getElementById('other-countries-content').innerHTML =
+                    '<p style="color: #888; text-align: center; padding: 30px;">خطأ في جلب البيانات</p>';
+            }
+        }
+
+        // Display similar BINs in table
+        function displaySimilarBins(containerId, items, searchedBin) {
+            const container = document.getElementById(containerId);
+
+            if (items.length === 0) {
+                container.innerHTML = '<p style="color: #888; text-align: center; padding: 30px;">لا توجد BINs مشابهة</p>';
+                return;
+            }
+
+            // Remove duplicates based on BIN
+            const uniqueItems = [];
+            const seenBins = new Set();
+            items.forEach(item => {
+                if (!seenBins.has(item.bin)) {
+                    seenBins.add(item.bin);
+                    uniqueItems.push(item);
+                }
+            });
+
+            let tableHtml = `
+                <p style="color: #FFD700; margin-bottom: 15px;">تم العثور على ${uniqueItems.length} BIN مشابه</p>
+                <div class="table-container">
+                    <table class="similar-bins-table">
+                        <thead>
+                            <tr>
+                                <th>BIN</th>
+                                <th>الدولة</th>
+                                <th>النوع</th>
+                                <th>العلامة</th>
+                                <th>الدرجة</th>
+                                <th>البنك</th>
+                                <th>العدد</th>
+                                <th>المصدر</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            uniqueItems.slice(0, 100).forEach(item => {
+                const gradeClass = item.grade?.toLowerCase().includes('platinum') ? 'platinum' :
+                    item.grade?.toLowerCase().includes('gold') ? 'gold' :
+                        item.grade?.toLowerCase().includes('signature') ? 'signature' : 'classic';
+
+                tableHtml += `
+                    <tr>
+                        <td style="font-weight: bold; color: #FFD700;">${item.bin}</td>
+                        <td><span class="country-tag">${item.country || '-'}</span></td>
+                        <td>${item.cardType || '-'}</td>
+                        <td>${item.brand || '-'}</td>
+                        <td><span class="grade-tag ${gradeClass}">${item.grade || '-'}</span></td>
+                        <td>${item.bank || '-'}</td>
+                        <td>${item.count || 0}</td>
+                        <td><span class="file-badge ${item.source === 'luozi' ? 'luozi' : 'quanzi'}">${item.source === 'luozi' ? '裸资' : '全资'}</span></td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            if (uniqueItems.length > 100) {
+                tableHtml += `<p style="color: #888; text-align: center; margin-top: 15px;">...و ${uniqueItems.length - 100} المزيد</p>`;
+            }
+
+            container.innerHTML = tableHtml;
+        }
+
+        // Update database status
+        function updateDbStatus(connected, message) {
+            const statusEl = document.getElementById('db-status');
+            const textEl = document.getElementById('db-status-text');
+
+            if (connected) {
+                statusEl.classList.remove('error');
+                statusEl.classList.add('connected');
+            } else {
+                statusEl.classList.remove('connected');
+                statusEl.classList.add('error');
+            }
+
+            textEl.textContent = message;
+        }
+
+        // Check database connection
+        async function checkDbConnection() {
+            try {
+                const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collectionId}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateDbStatus(true, `متصل - ${data.name || 'BIN Database'}`);
+                } else {
+                    updateDbStatus(false, 'غير متصل بقاعدة البيانات');
+                }
+            } catch (error) {
+                updateDbStatus(false, 'خطأ في الاتصال');
+            }
+        }
+
+        // Enter key support
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('bin-search-input').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    searchBIN();
+                }
+            });
+
+            // Check database connection
+            checkDbConnection();
+        });
+    </script>
+</body>
+
+</html>
