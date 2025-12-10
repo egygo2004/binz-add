@@ -521,6 +521,12 @@
     </div>
 
     <script>
+        // Auth Check - Redirect to login if not logged in
+        if (!sessionStorage.getItem('adminLoggedIn')) {
+            alert('يرجى تسجيل الدخول أولاً');
+            window.location.href = 'index.html';
+        }
+
         // Appwrite Configuration
         const APPWRITE_CONFIG = {
             endpoint: 'https://nyc.cloud.appwrite.io/v1',
