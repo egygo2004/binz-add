@@ -164,8 +164,10 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 // Navigation
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', (e) => {
-        e.preventDefault();
         const section = e.currentTarget.getAttribute('data-section');
+        // Skip if no data-section (external links like bin-search)
+        if (!section) return;
+        e.preventDefault();
         navigateToSection(section);
     });
 });
