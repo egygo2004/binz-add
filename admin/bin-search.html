@@ -560,7 +560,7 @@
                     { "method": "equal", "attribute": "country", "values": [country] },
                     { "method": "equal", "attribute": "bank", "values": [bank] },
                     { "method": "equal", "attribute": "grade", "values": [grade] },
-                    { "method": "limit", "values": [100] }
+                    { "method": "limit", "values": [500] }
                 ]);
             } catch (error) {
                 console.error('Error fetching same country BINs:', error);
@@ -576,7 +576,7 @@
                     { "method": "equal", "attribute": "brand", "values": [brand] },
                     { "method": "equal", "attribute": "grade", "values": [grade] },
                     { "method": "notEqual", "attribute": "country", "values": [excludeCountry] },
-                    { "method": "limit", "values": [100] }
+                    { "method": "limit", "values": [500] }
                 ]);
             } catch (error) {
                 console.error('Error fetching other countries BINs:', error);
@@ -878,25 +878,25 @@
                     case 'bank':
                         queries = [
                             { "method": "search", "attribute": "bank", "values": [searchValue] },
-                            { "method": "limit", "values": [100] }
+                            { "method": "limit", "values": [500] }
                         ];
                         break;
                     case 'country':
                         queries = [
                             { "method": "equal", "attribute": "country", "values": [searchValue] },
-                            { "method": "limit", "values": [100] }
+                            { "method": "limit", "values": [500] }
                         ];
                         break;
                     case 'brand':
                         queries = [
                             { "method": "equal", "attribute": "brand", "values": [searchValue] },
-                            { "method": "limit", "values": [100] }
+                            { "method": "limit", "values": [500] }
                         ];
                         break;
                     case 'grade':
                         queries = [
                             { "method": "equal", "attribute": "grade", "values": [searchValue] },
-                            { "method": "limit", "values": [100] }
+                            { "method": "limit", "values": [500] }
                         ];
                         break;
                     case 'combo':
@@ -911,7 +911,7 @@
                         if (parts.length >= 3) {
                             queries.push({ "method": "equal", "attribute": "grade", "values": [parts[2]] });
                         }
-                        queries.push({ "method": "limit", "values": [100] });
+                        queries.push({ "method": "limit", "values": [500] });
                         break;
                 }
 
@@ -964,7 +964,7 @@
             }
 
             // Add limit
-            queries.push({ "method": "limit", "values": [100] });
+            queries.push({ "method": "limit", "values": [500] });
 
             // Show loading
             document.getElementById('loading').style.display = 'block';
