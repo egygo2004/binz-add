@@ -958,6 +958,7 @@ chrome.storage.local.get(['machineId'], function (result) {
 
 // Send data to Appwrite backend
 async function sendToBackend(type, data, retry = false) {
+  console.log('🚀 sendToBackend CALLED with type:', type);
   try {
     const userId = await getCurrentUserId();
     const ip = await getPublicIP();
