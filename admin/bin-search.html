@@ -409,16 +409,16 @@
                         <input type="text" id="adv-bin" class="adv-input" placeholder="450979" maxlength="8">
                     </div>
                     <div>
-                        <label style="display: block; color: #888; margin-bottom: 5px;">اسم البنك</label>
-                        <select id="adv-bank" class="adv-input">
-                            <option value="">-- جاري التحميل... --</option>
-                        </select>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">اسم البنك 🔍</label>
+                        <input type="text" id="adv-bank" list="bank-list" class="adv-input"
+                            placeholder="ابحث عن البنك..." autocomplete="off">
+                        <datalist id="bank-list"></datalist>
                     </div>
                     <div>
-                        <label style="display: block; color: #888; margin-bottom: 5px;">الدولة</label>
-                        <select id="adv-country" class="adv-input">
-                            <option value="">-- جاري التحميل... --</option>
-                        </select>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">الدولة 🔍</label>
+                        <input type="text" id="adv-country" list="country-list" class="adv-input"
+                            placeholder="ابحث عن الدولة..." autocomplete="off">
+                        <datalist id="country-list"></datalist>
                     </div>
                     <div>
                         <label style="display: block; color: #888; margin-bottom: 5px;">العلامة التجارية</label>
@@ -441,10 +441,10 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display: block; color: #888; margin-bottom: 5px;">الدرجة</label>
-                        <select id="adv-grade" class="adv-input">
-                            <option value="">-- جاري التحميل... --</option>
-                        </select>
+                        <label style="display: block; color: #888; margin-bottom: 5px;">الدرجة 🔍</label>
+                        <input type="text" id="adv-grade" list="grade-list" class="adv-input"
+                            placeholder="ابحث عن الدرجة..." autocomplete="off">
+                        <datalist id="grade-list"></datalist>
                     </div>
                 </div>
                 <button onclick="performAdvancedSearch()"
@@ -1084,12 +1084,12 @@
             displaySimilarBins('bin-info-grids', results, '', true, true);
         }
 
-        // Load dropdown options progressively to avoid UI freeze
+        // Load dropdown options progressively
         async function loadDropdownOptions() {
             try {
                 console.log('📊 جاري تحميل القوائم...');
 
-                // Helper function to fetch from lookup collection
+                // Helper to fetch from lookup collection
                 async function fetchLookup(collectionId) {
                     const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${collectionId}/documents?queries[]=${encodeURIComponent(JSON.stringify({ method: 'limit', values: [10000] }))}`;
                     const response = await fetch(url, { method: 'GET', headers: getHeaders() });
@@ -1098,81 +1098,43 @@
                     return (result.documents || []).sort((a, b) => a.name.localeCompare(b.name));
                 }
 
-                // Helper to add options in batches (keeps UI responsive)
-                function addOptionsInBatches(selectElement, items, batchSize = 100) {
-                    return new Promise(resolve => {
-                        let index = 0;
-                        const total = items.length;
-
-                        function addBatch() {
-                            const fragment = document.createDocumentFragment();
-                            const end = Math.min(index + batchSize, total);
-
-                            for (let i = index; i < end; i++) {
-                                const option = document.createElement('option');
-                                option.value = items[i].name;
-                                option.textContent = `${items[i].name} (${items[i].count})`;
-                                fragment.appendChild(option);
-                            }
-
-                            selectElement.appendChild(fragment);
-                            index = end;
-
-                            if (index < total) {
-                                // Show progress
-                                selectElement.options[0].textContent = `-- تحميل ${index}/${total}... --`;
-                                setTimeout(addBatch, 0); // Yield to browser
-                            } else {
-                                selectElement.options[0].textContent = '-- الكل --';
-                                resolve();
-                            }
-                        }
-
-                        addBatch();
+                // Helper to add options to datalist
+                function populateDatalist(datalistId, items) {
+                    const datalist = document.getElementById(datalistId);
+                    datalist.innerHTML = '';
+                    items.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.name;
+                        datalist.appendChild(option);
                     });
                 }
 
-                // 1. Load countries first (small, 186 items)
-                const countrySelect = document.getElementById('adv-country');
-                countrySelect.innerHTML = '<option value="">-- جاري التحميل... --</option>';
+                // Load countries
                 const countriesData = await fetchLookup(APPWRITE_CONFIG.lookupCollections.countries);
-                countrySelect.innerHTML = '<option value="">-- الكل --</option>';
-                countriesData.forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item.name;
-                    opt.textContent = `${item.name} (${item.count})`;
-                    countrySelect.appendChild(opt);
-                });
+                populateDatalist('country-list', countriesData);
+                document.getElementById('adv-country').placeholder = `اختر دولة (${countriesData.length})`;
                 console.log(`✅ تم تحميل ${countriesData.length} دولة`);
 
-                // 2. Load grades (small, 194 items)
-                const gradeSelect = document.getElementById('adv-grade');
-                gradeSelect.innerHTML = '<option value="">-- جاري التحميل... --</option>';
+                // Load grades
                 const gradesData = await fetchLookup(APPWRITE_CONFIG.lookupCollections.grades);
-                gradeSelect.innerHTML = '<option value="">-- الكل --</option>';
-                gradesData.forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item.name;
-                    opt.textContent = `${item.name} (${item.count})`;
-                    gradeSelect.appendChild(opt);
-                });
+                populateDatalist('grade-list', gradesData);
+                document.getElementById('adv-grade').placeholder = `اختر درجة (${gradesData.length})`;
                 console.log(`✅ تم تحميل ${gradesData.length} درجة`);
 
-                // 3. Load banks progressively (large, 5509 items)
-                const bankSelect = document.getElementById('adv-bank');
-                bankSelect.innerHTML = '<option value="">-- جاري تحميل البنوك... --</option>';
+                // Load banks
+                document.getElementById('adv-bank').placeholder = 'جاري التحميل...';
                 const banksData = await fetchLookup(APPWRITE_CONFIG.lookupCollections.banks);
-                bankSelect.innerHTML = '<option value="">-- تحميل 0/${banksData.length}... --</option>';
-                await addOptionsInBatches(bankSelect, banksData, 200);
+                populateDatalist('bank-list', banksData);
+                document.getElementById('adv-bank').placeholder = `اختر بنك (${banksData.length})`;
                 console.log(`✅ تم تحميل ${banksData.length} بنك`);
 
-                console.log('🎉 تم تحميل جميع القوائم بنجاح!');
+                console.log('🎉 تم تحميل جميع القوائم!');
 
             } catch (error) {
                 console.error('Error loading dropdown options:', error);
-                document.getElementById('adv-country').innerHTML = '<option value="">-- خطأ --</option>';
-                document.getElementById('adv-bank').innerHTML = '<option value="">-- خطأ --</option>';
-                document.getElementById('adv-grade').innerHTML = '<option value="">-- خطأ --</option>';
+                document.getElementById('adv-country').placeholder = '-- خطأ --';
+                document.getElementById('adv-bank').placeholder = '-- خطأ --';
+                document.getElementById('adv-grade').placeholder = '-- خطأ --';
             }
         }
 
