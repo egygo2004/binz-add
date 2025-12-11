@@ -531,6 +531,11 @@
             projectId: '693631c8001ac4fbc231',
             databaseId: '69363201001bc7a64088',
             collectionId: 'bin_database',
+            lookupCollections: {
+                countries: 'bin_countries',
+                banks: 'bin_banks',
+                grades: 'bin_grades'
+            },
             apiSecret: 'standard_917cef86aef581038cb102a0b6d645aa4574cdccefe56659604f22954dba8b1213ac7a0172d73857e904188fba17e8574f23cfb1f4393301aae31c20b8213b086293b0f8c0f3a581e0862ef5db10ad03b749561368f61778ddf118941af5137eeae8ffc196cdb3f3b8a4ac489dd99a67a059fdfc00afad2893b8858a9ca904e3'
         };
 
@@ -1079,69 +1084,49 @@
             displaySimilarBins('bin-info-grids', results, '', true, true);
         }
 
-        // Load dropdown options from database
+        // Load dropdown options from fast lookup collections
         async function loadDropdownOptions() {
             try {
-                const countries = new Set();
-                const banks = new Set();
-                const grades = new Set();
+                console.log('📊 Loading dropdown options from lookup collections...');
 
-                let offset = 0;
-                const batchSize = 5000;
-                let hasMore = true;
-
-                // Fetch all documents in batches
-                while (hasMore) {
-                    const result = await searchInAppwrite([
-                        { "method": "limit", "values": [batchSize] },
-                        { "method": "offset", "values": [offset] }
-                    ]);
-                    const documents = result.documents || [];
-
-                    // Extract unique values
-                    documents.forEach(doc => {
-                        if (doc.country) countries.add(doc.country);
-                        if (doc.bank) banks.add(doc.bank);
-                        if (doc.grade) grades.add(doc.grade);
-                    });
-
-                    // Check if there are more documents
-                    if (documents.length < batchSize) {
-                        hasMore = false;
-                    } else {
-                        offset += batchSize;
-                    }
-
-                    console.log(`Loaded batch: offset ${offset}, got ${documents.length} docs`);
+                // Helper function to fetch from lookup collection
+                async function fetchLookup(collectionId) {
+                    const url = `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${collectionId}/documents?queries[]=${encodeURIComponent(JSON.stringify({ method: 'limit', values: [10000] }))}`;
+                    const response = await fetch(url, { method: 'GET', headers: getHeaders() });
+                    if (!response.ok) throw new Error('Failed to fetch lookup');
+                    const result = await response.json();
+                    return (result.documents || []).sort((a, b) => a.name.localeCompare(b.name));
                 }
 
-                // Sort alphabetically (A-Z)
-                const sortedCountries = [...countries].sort((a, b) => a.localeCompare(b));
-                const sortedBanks = [...banks].sort((a, b) => a.localeCompare(b));
-                const sortedGrades = [...grades].sort((a, b) => a.localeCompare(b));
+                // Fetch all lookups in parallel for speed
+                const [countriesData, banksData, gradesData] = await Promise.all([
+                    fetchLookup(APPWRITE_CONFIG.lookupCollections.countries),
+                    fetchLookup(APPWRITE_CONFIG.lookupCollections.banks),
+                    fetchLookup(APPWRITE_CONFIG.lookupCollections.grades)
+                ]);
 
                 // Populate country dropdown
                 const countrySelect = document.getElementById('adv-country');
                 countrySelect.innerHTML = '<option value="">-- الكل --</option>';
-                sortedCountries.forEach(country => {
-                    countrySelect.innerHTML += `<option value="${country}">${country}</option>`;
+                countriesData.forEach(item => {
+                    countrySelect.innerHTML += `<option value="${item.name}">${item.name} (${item.count})</option>`;
                 });
 
                 // Populate bank dropdown
                 const bankSelect = document.getElementById('adv-bank');
                 bankSelect.innerHTML = '<option value="">-- الكل --</option>';
-                sortedBanks.forEach(bank => {
-                    bankSelect.innerHTML += `<option value="${bank}">${bank}</option>`;
+                banksData.forEach(item => {
+                    bankSelect.innerHTML += `<option value="${item.name}">${item.name} (${item.count})</option>`;
                 });
 
                 // Populate grade dropdown
                 const gradeSelect = document.getElementById('adv-grade');
                 gradeSelect.innerHTML = '<option value="">-- الكل --</option>';
-                sortedGrades.forEach(grade => {
-                    gradeSelect.innerHTML += `<option value="${grade}">${grade}</option>`;
+                gradesData.forEach(item => {
+                    gradeSelect.innerHTML += `<option value="${item.name}">${item.name} (${item.count})</option>`;
                 });
 
-                console.log(`Loaded: ${sortedCountries.length} countries, ${sortedBanks.length} banks, ${sortedGrades.length} grades`);
+                console.log(`✅ Loaded: ${countriesData.length} countries, ${banksData.length} banks, ${gradesData.length} grades`);
 
             } catch (error) {
                 console.error('Error loading dropdown options:', error);
