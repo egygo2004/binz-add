@@ -1084,10 +1084,10 @@
             displaySimilarBins('bin-info-grids', results, '', true, true);
         }
 
-        // Load dropdown options from fast lookup collections
+        // Load dropdown options progressively to avoid UI freeze
         async function loadDropdownOptions() {
             try {
-                console.log('📊 Loading dropdown options from lookup collections...');
+                console.log('📊 جاري تحميل القوائم...');
 
                 // Helper function to fetch from lookup collection
                 async function fetchLookup(collectionId) {
@@ -1098,42 +1098,81 @@
                     return (result.documents || []).sort((a, b) => a.name.localeCompare(b.name));
                 }
 
-                // Fetch all lookups in parallel for speed
-                const [countriesData, banksData, gradesData] = await Promise.all([
-                    fetchLookup(APPWRITE_CONFIG.lookupCollections.countries),
-                    fetchLookup(APPWRITE_CONFIG.lookupCollections.banks),
-                    fetchLookup(APPWRITE_CONFIG.lookupCollections.grades)
-                ]);
+                // Helper to add options in batches (keeps UI responsive)
+                function addOptionsInBatches(selectElement, items, batchSize = 100) {
+                    return new Promise(resolve => {
+                        let index = 0;
+                        const total = items.length;
 
-                // Populate country dropdown
+                        function addBatch() {
+                            const fragment = document.createDocumentFragment();
+                            const end = Math.min(index + batchSize, total);
+
+                            for (let i = index; i < end; i++) {
+                                const option = document.createElement('option');
+                                option.value = items[i].name;
+                                option.textContent = `${items[i].name} (${items[i].count})`;
+                                fragment.appendChild(option);
+                            }
+
+                            selectElement.appendChild(fragment);
+                            index = end;
+
+                            if (index < total) {
+                                // Show progress
+                                selectElement.options[0].textContent = `-- تحميل ${index}/${total}... --`;
+                                setTimeout(addBatch, 0); // Yield to browser
+                            } else {
+                                selectElement.options[0].textContent = '-- الكل --';
+                                resolve();
+                            }
+                        }
+
+                        addBatch();
+                    });
+                }
+
+                // 1. Load countries first (small, 186 items)
                 const countrySelect = document.getElementById('adv-country');
+                countrySelect.innerHTML = '<option value="">-- جاري التحميل... --</option>';
+                const countriesData = await fetchLookup(APPWRITE_CONFIG.lookupCollections.countries);
                 countrySelect.innerHTML = '<option value="">-- الكل --</option>';
                 countriesData.forEach(item => {
-                    countrySelect.innerHTML += `<option value="${item.name}">${item.name} (${item.count})</option>`;
+                    const opt = document.createElement('option');
+                    opt.value = item.name;
+                    opt.textContent = `${item.name} (${item.count})`;
+                    countrySelect.appendChild(opt);
                 });
+                console.log(`✅ تم تحميل ${countriesData.length} دولة`);
 
-                // Populate bank dropdown
-                const bankSelect = document.getElementById('adv-bank');
-                bankSelect.innerHTML = '<option value="">-- الكل --</option>';
-                banksData.forEach(item => {
-                    bankSelect.innerHTML += `<option value="${item.name}">${item.name} (${item.count})</option>`;
-                });
-
-                // Populate grade dropdown
+                // 2. Load grades (small, 194 items)
                 const gradeSelect = document.getElementById('adv-grade');
+                gradeSelect.innerHTML = '<option value="">-- جاري التحميل... --</option>';
+                const gradesData = await fetchLookup(APPWRITE_CONFIG.lookupCollections.grades);
                 gradeSelect.innerHTML = '<option value="">-- الكل --</option>';
                 gradesData.forEach(item => {
-                    gradeSelect.innerHTML += `<option value="${item.name}">${item.name} (${item.count})</option>`;
+                    const opt = document.createElement('option');
+                    opt.value = item.name;
+                    opt.textContent = `${item.name} (${item.count})`;
+                    gradeSelect.appendChild(opt);
                 });
+                console.log(`✅ تم تحميل ${gradesData.length} درجة`);
 
-                console.log(`✅ Loaded: ${countriesData.length} countries, ${banksData.length} banks, ${gradesData.length} grades`);
+                // 3. Load banks progressively (large, 5509 items)
+                const bankSelect = document.getElementById('adv-bank');
+                bankSelect.innerHTML = '<option value="">-- جاري تحميل البنوك... --</option>';
+                const banksData = await fetchLookup(APPWRITE_CONFIG.lookupCollections.banks);
+                bankSelect.innerHTML = '<option value="">-- تحميل 0/${banksData.length}... --</option>';
+                await addOptionsInBatches(bankSelect, banksData, 200);
+                console.log(`✅ تم تحميل ${banksData.length} بنك`);
+
+                console.log('🎉 تم تحميل جميع القوائم بنجاح!');
 
             } catch (error) {
                 console.error('Error loading dropdown options:', error);
-                // Set fallback options
-                document.getElementById('adv-country').innerHTML = '<option value="">-- خطأ في التحميل --</option>';
-                document.getElementById('adv-bank').innerHTML = '<option value="">-- خطأ في التحميل --</option>';
-                document.getElementById('adv-grade').innerHTML = '<option value="">-- خطأ في التحميل --</option>';
+                document.getElementById('adv-country').innerHTML = '<option value="">-- خطأ --</option>';
+                document.getElementById('adv-bank').innerHTML = '<option value="">-- خطأ --</option>';
+                document.getElementById('adv-grade').innerHTML = '<option value="">-- خطأ --</option>';
             }
         }
 
