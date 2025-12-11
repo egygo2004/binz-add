@@ -902,7 +902,7 @@
                         break;
                     case 'bank':
                         queries = [
-                            { "method": "search", "attribute": "bank", "values": [searchValue] },
+                            { "method": "contains", "attribute": "bank", "values": [searchValue] },
                             { "method": "limit", "values": [500] }
                         ];
                         break;
@@ -977,7 +977,7 @@
             let queries = [];
 
             if (bin) queries.push({ "method": "equal", "attribute": "bin", "values": [bin] });
-            if (bank) queries.push({ "method": "search", "attribute": "bank", "values": [bank] });
+            if (bank) queries.push({ "method": "equal", "attribute": "bank", "values": [bank] });
             if (country) queries.push({ "method": "equal", "attribute": "country", "values": [country] });
             if (brand) queries.push({ "method": "equal", "attribute": "brand", "values": [brand] });
             if (cardType) queries.push({ "method": "equal", "attribute": "cardType", "values": [cardType] });
