@@ -124,19 +124,35 @@ export default async ({ req, res, log, error }) => {
     // Parse body - Appwrite may send body in different formats
     let body;
     try {
-      log(`📦 Raw body type: ${typeof req.body}`);
-      log(`📦 Raw body: ${JSON.stringify(req.body).substring(0, 200)}`);
+      log(`📦 All req keys: ${Object.keys(req).join(', ')}`);
+      log(`📦 req.body type: ${typeof req.body}`);
+      log(`📦 req.body content: ${JSON.stringify(req.body)?.substring(0, 300)}`);
+      log(`📦 req.bodyRaw: ${req.bodyRaw?.substring(0, 300)}`);
+      log(`📦 req.bodyText: ${req.bodyText?.substring(0, 300)}`);
 
       if (typeof req.body === 'string' && req.body.length > 0) {
         body = JSON.parse(req.body);
-      } else if (typeof req.body === 'object' && req.body !== null) {
+        log(`✅ Parsed from body string`);
+      } else if (typeof req.body === 'object' && req.body !== null && Object.keys(req.body).length > 0) {
         body = req.body;
-      } else if (req.bodyRaw) {
-        // Some Appwrite versions use bodyRaw
+        log(`✅ Using body object directly`);
+      } else if (req.bodyRaw && typeof req.bodyRaw === 'string' && req.bodyRaw.length > 0) {
         body = JSON.parse(req.bodyRaw);
+        log(`✅ Parsed from bodyRaw`);
+      } else if (req.bodyText && typeof req.bodyText === 'string' && req.bodyText.length > 0) {
+        body = JSON.parse(req.bodyText);
+        log(`✅ Parsed from bodyText`);
       } else {
-        log(`❌ Empty or invalid body received`);
-        return res.json({ success: false, error: 'Empty request body' }, 400, corsHeaders);
+        log(`❌ No valid body found`);
+        return res.json({
+          success: false,
+          error: 'Empty request body',
+          debug: {
+            reqKeys: Object.keys(req),
+            bodyType: typeof req.body,
+            bodyKeys: typeof req.body === 'object' ? Object.keys(req.body || {}) : null
+          }
+        }, 400, corsHeaders);
       }
     } catch (e) {
       log(`❌ JSON parse error: ${e.message}`);
