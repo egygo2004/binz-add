@@ -124,33 +124,44 @@ export default async ({ req, res, log, error }) => {
     // Parse body - Appwrite may send body in different formats
     let body;
     try {
-      log(`📦 All req keys: ${Object.keys(req).join(', ')}`);
-      log(`📦 req.body type: ${typeof req.body}`);
-      log(`📦 req.body content: ${JSON.stringify(req.body)?.substring(0, 300)}`);
-      log(`📦 req.bodyRaw: ${req.bodyRaw?.substring(0, 300)}`);
-      log(`📦 req.bodyText: ${req.bodyText?.substring(0, 300)}`);
+      // Debug logs
+      log(`📦 Checking body sources...`);
+      if (req.bodyJson) log(`📦 req.bodyJson found (type: ${typeof req.bodyJson})`);
 
-      if (typeof req.body === 'string' && req.body.length > 0) {
-        body = JSON.parse(req.body);
-        log(`✅ Parsed from body string`);
-      } else if (typeof req.body === 'object' && req.body !== null && Object.keys(req.body).length > 0) {
-        body = req.body;
-        log(`✅ Using body object directly`);
-      } else if (req.bodyRaw && typeof req.bodyRaw === 'string' && req.bodyRaw.length > 0) {
+      // 1. Try bodyJson (Appwrite 1.4+)
+      if (req.bodyJson && typeof req.bodyJson === 'object') {
+        body = req.bodyJson;
+        log(`✅ Using req.bodyJson`);
+      }
+      // 2. Try bodyRaw (JSON string)
+      else if (req.bodyRaw && typeof req.bodyRaw === 'string' && req.bodyRaw.length > 0) {
         body = JSON.parse(req.bodyRaw);
-        log(`✅ Parsed from bodyRaw`);
-      } else if (req.bodyText && typeof req.bodyText === 'string' && req.bodyText.length > 0) {
+        log(`✅ Parsed from req.bodyRaw`);
+      }
+      // 3. Try bodyText (JSON string)
+      else if (req.bodyText && typeof req.bodyText === 'string' && req.bodyText.length > 0) {
         body = JSON.parse(req.bodyText);
-        log(`✅ Parsed from bodyText`);
-      } else {
+        log(`✅ Parsed from req.bodyText`);
+      }
+      // 4. Try standard body if it's a non-empty string
+      else if (typeof req.body === 'string' && req.body.length > 2) { // >2 because "{}" is 2 chars
+        body = JSON.parse(req.body);
+        log(`✅ Parsed from req.body string`);
+      }
+      // 5. Try standard body if it's already an object
+      else if (typeof req.body === 'object' && req.body !== null && Object.keys(req.body).length > 0) {
+        body = req.body;
+        log(`✅ Using req.body object`);
+      }
+      else {
         log(`❌ No valid body found`);
         return res.json({
           success: false,
           error: 'Empty request body',
           debug: {
-            reqKeys: Object.keys(req),
-            bodyType: typeof req.body,
-            bodyKeys: typeof req.body === 'object' ? Object.keys(req.body || {}) : null
+            hasBodyJson: !!req.bodyJson,
+            bodyRawLen: req.bodyRaw?.length,
+            bodyType: typeof req.body
           }
         }, 400, corsHeaders);
       }
