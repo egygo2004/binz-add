@@ -337,7 +337,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   padding: 14px 16px;
   text-align: right;
   border-bottom: 1px solid rgba(255, 215, 0, 0.1);
@@ -498,7 +499,9 @@ tr:hover td {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive */
@@ -506,23 +509,437 @@ tr:hover td {
   .sidebar {
     width: 60px;
   }
-  
+
   .sidebar-header h2,
   .sidebar-header .version,
   .nav-item span:not(.icon) {
     display: none;
   }
-  
+
   .nav-item {
     justify-content: center;
     padding: 14px;
   }
-  
+
   .main-content {
     margin-right: 60px;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ====================================
+   GOOGLE SHEETS STYLE TABLE ENHANCEMENTS
+   ==================================== */
+
+/* Enhanced Table Container */
+.table-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  max-height: 70vh;
+  position: relative;
+}
+
+/* Google Sheets Style Table */
+table.gsheet-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+/* Sticky Header */
+table.gsheet-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+table.gsheet-table thead tr:first-child th {
+  background: linear-gradient(180deg, #2a2a3e 0%, #23272f 100%);
+  border-bottom: 2px solid var(--primary);
+  position: relative;
+}
+
+/* Sortable Column Headers */
+table.gsheet-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+table.gsheet-table th.sortable:hover {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+table.gsheet-table th.sortable::after {
+  content: '⇅';
+  margin-right: 8px;
+  opacity: 0.4;
+  font-size: 12px;
+}
+
+table.gsheet-table th.sorted-asc::after {
+  content: '↑';
+  opacity: 1;
+  color: var(--primary);
+}
+
+table.gsheet-table th.sorted-desc::after {
+  content: '↓';
+  opacity: 1;
+  color: var(--primary);
+}
+
+/* Filter Row */
+table.gsheet-table thead tr.filter-row th {
+  background: var(--bg-dark);
+  padding: 8px 6px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+table.gsheet-table .column-filter {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+table.gsheet-table .column-filter:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
+}
+
+table.gsheet-table .column-filter::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Zebra Striping */
+table.gsheet-table tbody tr:nth-child(even) {
+  background: rgba(255, 215, 0, 0.02);
+}
+
+table.gsheet-table tbody tr:nth-child(odd) {
+  background: var(--bg-card);
+}
+
+/* Row Hover Effect */
+table.gsheet-table tbody tr:hover {
+  background: rgba(255, 215, 0, 0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 0, 0.2);
+}
+
+/* Cell Styling */
+table.gsheet-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.05);
+  vertical-align: middle;
+  transition: background 0.15s;
+}
+
+table.gsheet-table th {
+  padding: 14px 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+}
+
+/* Column Resize Handle */
+table.gsheet-table th .resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+table.gsheet-table th .resize-handle:hover,
+table.gsheet-table th .resize-handle.resizing {
+  background: var(--primary);
+}
+
+/* ====================================
+   PAGINATION CONTROLS
+   ==================================== */
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(180deg, var(--bg-card) 0%, rgba(255, 215, 0, 0.05) 100%);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  border-top: 1px solid rgba(255, 215, 0, 0.1);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pagination-info .total-count {
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.pagination-info .page-range {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--bg-dark);
+  font-weight: bold;
+}
+
+.pagination-ellipsis {
+  padding: 0 8px;
+  color: var(--text-secondary);
+}
+
+.per-page-select {
+  padding: 8px 14px;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  margin-right: 12px;
+}
+
+.per-page-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ====================================
+   EXPORT BUTTONS
+   ==================================== */
+
+.export-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.export-btn {
+  padding: 8px 14px;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.export-btn:hover {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: var(--primary);
+}
+
+.export-btn .icon {
+  font-size: 14px;
+}
+
+/* ====================================
+   SEARCH HIGHLIGHT
+   ==================================== */
+
+.search-highlight {
+  background: var(--primary);
+  color: var(--bg-dark);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+/* ====================================
+   TABLE LOADING STATE
+   ==================================== */
+
+.table-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(24, 25, 26, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.table-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 215, 0, 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Close button for modal */
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 28px;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: var(--error);
+}
+
+/* ====================================
+   GLOBAL SEARCH BAR
+   ==================================== */
+
+.global-search-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.global-search-input {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.global-search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.clear-filters-btn {
+  padding: 10px 16px;
+  background: var(--error);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+.clear-filters-btn:hover {
+  background: #d32f2f;
+}
+
+/* ====================================
+   DATE RANGE PICKER
+   ==================================== */
+
+.date-range-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input {
+  padding: 6px 10px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.date-range-separator {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* Results count badge */
+.results-count {
+  padding: 4px 12px;
+  background: rgba(255, 215, 0, 0.15);
+  border-radius: 20px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: bold;
 }
