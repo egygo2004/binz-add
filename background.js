@@ -272,6 +272,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       activeBinData,
       declineBinData
     });
+  } else if (request.action === 'testSaveToBackend') {
+    // Test function to verify data saving works
+    console.log('[TEST] Testing save to backend...');
+    sendToBackend('TEST_SAVE', {
+      message: 'Test from extension',
+      timestamp: new Date().toISOString(),
+      source: 'popup_test_button'
+    }).then(() => {
+      console.log('[TEST] Save test completed');
+      sendResponse({ success: true, message: 'Test save sent!' });
+    }).catch(err => {
+      console.error('[TEST] Save test failed:', err);
+      sendResponse({ success: false, error: err.message });
+    });
+    return true; // Keep channel open for async
   }
 });
 

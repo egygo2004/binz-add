@@ -124,6 +124,30 @@ document.addEventListener('DOMContentLoaded', () => {
   if (clearBtn) {
     clearBtn.addEventListener('click', clearBindingLogs);
   }
+
+  // Test save button handler
+  const testSaveBtn = document.getElementById('testSaveBtn');
+  if (testSaveBtn) {
+    testSaveBtn.addEventListener('click', async () => {
+      const resultDiv = document.getElementById('testSaveResult');
+      resultDiv.innerHTML = '<span style="color: #00D4FF;">⏳ جاري الاختبار...</span>';
+      testSaveBtn.disabled = true;
+
+      try {
+        const response = await chrome.runtime.sendMessage({ action: 'testSaveToBackend' });
+        if (response && response.success) {
+          resultDiv.innerHTML = '<span style="color: #00FF41;">✅ نجح الحفظ! تحقق من لوحة Appwrite</span>';
+        } else {
+          resultDiv.innerHTML = '<span style="color: #FF0040;">❌ فشل: ' + (response?.error || 'خطأ غير معروف') + '</span>';
+        }
+      } catch (err) {
+        console.error('Test save error:', err);
+        resultDiv.innerHTML = '<span style="color: #FF0040;">❌ خطأ: ' + err.message + '</span>';
+      }
+
+      testSaveBtn.disabled = false;
+    });
+  }
 });
 
 const translations = {
