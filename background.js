@@ -1101,17 +1101,21 @@ async function sendToBackend(type, data, retry = false, retryCount = 0) {
 
     console.log('[SECURE] === Sending to Appwrite Function ===');
     console.log('[SECURE] Type:', type);
-    console.log('[SECURE] UserId:', payload.userId);
     console.log('[SECURE] Function URL:', APPWRITE_CONFIG.functionUrl);
+
+    // Explicitly stringify the body for logging
+    const requestBodyString = JSON.stringify(apiBody);
+    console.log('[SECURE] Request Body Preview:', requestBodyString.substring(0, 200) + '...');
 
     // Call Appwrite Function (no API key in headers!)
     const response = await fetch(APPWRITE_CONFIG.functionUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Accept': 'application/json',
         'X-Appwrite-Project': APPWRITE_CONFIG.projectId
       },
-      body: JSON.stringify(apiBody)
+      body: requestBodyString
     });
 
     console.log('[SECURE] Function response:', response.status, response.statusText);
