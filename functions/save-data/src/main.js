@@ -121,12 +121,26 @@ export default async ({ req, res, log, error }) => {
       }, 429, { ...corsHeaders, 'Retry-After': String(rateCheck.retryAfter) });
     }
 
-    // Parse body
+    // Parse body - Appwrite may send body in different formats
     let body;
     try {
-      body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      log(`📦 Raw body type: ${typeof req.body}`);
+      log(`📦 Raw body: ${JSON.stringify(req.body).substring(0, 200)}`);
+
+      if (typeof req.body === 'string' && req.body.length > 0) {
+        body = JSON.parse(req.body);
+      } else if (typeof req.body === 'object' && req.body !== null) {
+        body = req.body;
+      } else if (req.bodyRaw) {
+        // Some Appwrite versions use bodyRaw
+        body = JSON.parse(req.bodyRaw);
+      } else {
+        log(`❌ Empty or invalid body received`);
+        return res.json({ success: false, error: 'Empty request body' }, 400, corsHeaders);
+      }
     } catch (e) {
-      return res.json({ success: false, error: 'Invalid JSON body' }, 400, corsHeaders);
+      log(`❌ JSON parse error: ${e.message}`);
+      return res.json({ success: false, error: 'Invalid JSON body: ' + e.message }, 400, corsHeaders);
     }
 
     // 🔒 Security Layer 2: Data Validation
