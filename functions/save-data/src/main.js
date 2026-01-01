@@ -167,7 +167,18 @@ export default async ({ req, res, log, error }) => {
       }
     } catch (e) {
       log(`❌ JSON parse error: ${e.message}`);
-      return res.json({ success: false, error: 'Invalid JSON body: ' + e.message }, 400, corsHeaders);
+      return res.json({
+        success: false,
+        error: 'Invalid JSON body: ' + e.message,
+        debug: {
+          error: e.message,
+          check: 'In catch block',
+          reqType: typeof req.body,
+          reqBody: typeof req.body === 'string' ? req.body.substring(0, 100) : 'Not a string',
+          bodyRaw: req.bodyRaw ? req.bodyRaw.substring(0, 100) : 'undefined',
+          bodyJson: req.bodyJson ? 'Present' : 'undefined'
+        }
+      }, 400, corsHeaders);
     }
 
     // 🔒 Security Layer 2: Data Validation
