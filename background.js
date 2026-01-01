@@ -16,7 +16,7 @@ const APPWRITE_CONFIG = {
   databaseId: '69363201001bc7a64088',
 
   // ✅ Function ID - Deployed and Ready!
-  functionId: '6955cd8a003b317708c9',
+  functionId: '6955cfb24022b36b3430',
 
   // Function endpoint (will be constructed from functionId)
   get functionUrl() {
