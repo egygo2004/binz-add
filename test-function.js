@@ -1,5 +1,5 @@
-// Test Appwrite Function
-const FUNCTION_URL = 'https://nyc.cloud.appwrite.io/v1/functions/6955cd8900241eacc995/executions';
+// Test Appwrite Function - Using Function Domain
+const FUNCTION_URL = 'https://6955cd8900241eacc995.nyc.appwrite.run/';
 const PROJECT_ID = '693631c8001ac4fbc231';
 
 async function testFunction() {

