@@ -254,7 +254,8 @@ export default async ({ req, res, log, error }) => {
 
     return res.json({
       success: false,
-      error: 'Internal server error'
+      error: 'Internal server error: ' + e.message,
+      stack: e.stack
     }, 500, corsHeaders);
   }
 };
