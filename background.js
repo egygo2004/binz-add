@@ -273,19 +273,54 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       declineBinData
     });
   } else if (request.action === 'testSaveToBackend') {
-    // Test function to verify data saving works
+    // Test function to verify data saving works - using direct API call
     console.log('[TEST] Testing save to backend...');
-    sendToBackend('TEST_SAVE', {
-      message: 'Test from extension',
-      timestamp: new Date().toISOString(),
-      source: 'popup_test_button'
-    }).then(() => {
-      console.log('[TEST] Save test completed');
-      sendResponse({ success: true, message: 'Test save sent!' });
-    }).catch(err => {
-      console.error('[TEST] Save test failed:', err);
-      sendResponse({ success: false, error: err.message });
-    });
+
+    (async () => {
+      try {
+        const testData = {
+          userId: 'test_from_extension',
+          type: 'TEST_SAVE',
+          data: JSON.stringify({
+            message: 'Test from extension popup',
+            timestamp: new Date().toISOString(),
+            source: 'popup_test_button'
+          }),
+          ip: 'extension_test',
+          createdAt: new Date().toISOString()
+        };
+
+        console.log('[TEST] Sending test data:', testData);
+
+        const response = await fetch(
+          `${APPWRITE_CONFIG.endpoint}/databases/${APPWRITE_CONFIG.databaseId}/collections/${APPWRITE_CONFIG.collections.logs}/documents`,
+          {
+            method: 'POST',
+            headers: getAppwriteHeaders(),
+            body: JSON.stringify({
+              documentId: 'unique()',
+              data: testData
+            })
+          }
+        );
+
+        console.log('[TEST] Response status:', response.status);
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[TEST] ✅ Save successful! DocId:', result.$id);
+          sendResponse({ success: true, message: 'تم الحفظ بنجاح! ID: ' + result.$id });
+        } else {
+          const errorText = await response.text();
+          console.error('[TEST] ❌ Save failed:', errorText);
+          sendResponse({ success: false, error: 'HTTP ' + response.status + ': ' + errorText });
+        }
+      } catch (err) {
+        console.error('[TEST] ❌ Exception:', err);
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+
     return true; // Keep channel open for async
   }
 });
