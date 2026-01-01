@@ -310,15 +310,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
         };
 
+        // Wrap payload for Appwrite Executions API
+        const apiBody = {
+          body: JSON.stringify(payload),
+          async: false
+        };
+
         console.log('[TEST] Sending to Function:', APPWRITE_CONFIG.functionUrl);
+        console.log('[TEST] Request Body Preview:', JSON.stringify(apiBody).substring(0, 100) + '...');
 
         const response = await fetch(APPWRITE_CONFIG.functionUrl, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json',
             'X-Appwrite-Project': APPWRITE_CONFIG.projectId
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(apiBody)
         });
 
         console.log('[TEST] Response status:', response.status);
