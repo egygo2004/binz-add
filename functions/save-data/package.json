@@ -1,0 +1,10 @@
+{
+    "name": "save-data",
+    "version": "1.0.0",
+    "description": "Secure Appwrite Function for saving extension data",
+    "main": "src/main.js",
+    "type": "module",
+    "dependencies": {
+        "node-appwrite": "^12.0.0"
+    }
+}
