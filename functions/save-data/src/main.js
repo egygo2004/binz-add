@@ -143,7 +143,7 @@ export default async ({ req, res, log, error }) => {
         log(`✅ Using safeBodyJson`);
       }
       // 2. Try bodyRaw (JSON string)
-      else if (req.bodyRaw && typeof req.bodyRaw === 'string' && req.bodyRaw.length > 0) {
+      else if (req.bodyRaw && typeof req.bodyRaw === 'string' && req.bodyRaw.trim().length > 0) {
         try {
           body = JSON.parse(req.bodyRaw);
           log(`✅ Parsed from req.bodyRaw`);
@@ -152,7 +152,7 @@ export default async ({ req, res, log, error }) => {
         }
       }
       // 3. Try bodyText (JSON string)
-      else if (req.bodyText && typeof req.bodyText === 'string' && req.bodyText.length > 0) {
+      else if (req.bodyText && typeof req.bodyText === 'string' && req.bodyText.trim().length > 0) {
         try {
           body = JSON.parse(req.bodyText);
           log(`✅ Parsed from req.bodyText`);
@@ -161,7 +161,7 @@ export default async ({ req, res, log, error }) => {
         }
       }
       // 4. Try standard body if it's a non-empty string
-      else if (typeof req.body === 'string' && req.body.length > 2) {
+      else if (typeof req.body === 'string' && req.body.trim().length > 2) {
         try {
           body = JSON.parse(req.body);
           log(`✅ Parsed from req.body string`);
