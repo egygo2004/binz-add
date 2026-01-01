@@ -124,62 +124,75 @@ export default async ({ req, res, log, error }) => {
     // Parse body - Appwrite may send body in different formats
     let body;
     try {
-      // Debug logs
-      log(`📦 Checking body sources...`);
-      if (req.bodyJson) log(`📦 req.bodyJson found (type: ${typeof req.bodyJson})`);
+      // Debug: Log raw body first (safe operation)
+      const rawBodyPreview = req.bodyRaw ? (req.bodyRaw.length > 100 ? req.bodyRaw.substring(0, 100) + '...' : req.bodyRaw) : 'undefined';
+      log(`📦 req.bodyRaw preview: ${rawBodyPreview}`);
+
+      // Safe access to bodyJson (getter might throw)
+      let safeBodyJson = null;
+      try {
+        safeBodyJson = req.bodyJson;
+        if (safeBodyJson) log(`📦 req.bodyJson found`);
+      } catch (err) {
+        log(`⚠️ req.bodyJson access error: ${err.message}`);
+      }
 
       // 1. Try bodyJson (Appwrite 1.4+)
-      if (req.bodyJson && typeof req.bodyJson === 'object') {
-        body = req.bodyJson;
-        log(`✅ Using req.bodyJson`);
+      if (safeBodyJson && typeof safeBodyJson === 'object') {
+        body = safeBodyJson;
+        log(`✅ Using safeBodyJson`);
       }
       // 2. Try bodyRaw (JSON string)
       else if (req.bodyRaw && typeof req.bodyRaw === 'string' && req.bodyRaw.length > 0) {
-        body = JSON.parse(req.bodyRaw);
-        log(`✅ Parsed from req.bodyRaw`);
+        try {
+          body = JSON.parse(req.bodyRaw);
+          log(`✅ Parsed from req.bodyRaw`);
+        } catch (e) {
+          log(`⚠️ Failed to parse bodyRaw: ${e.message}`);
+        }
       }
       // 3. Try bodyText (JSON string)
       else if (req.bodyText && typeof req.bodyText === 'string' && req.bodyText.length > 0) {
-        body = JSON.parse(req.bodyText);
-        log(`✅ Parsed from req.bodyText`);
+        try {
+          body = JSON.parse(req.bodyText);
+          log(`✅ Parsed from req.bodyText`);
+        } catch (e) {
+          log(`⚠️ Failed to parse bodyText: ${e.message}`);
+        }
       }
       // 4. Try standard body if it's a non-empty string
-      else if (typeof req.body === 'string' && req.body.length > 2) { // >2 because "{}" is 2 chars
-        body = JSON.parse(req.body);
-        log(`✅ Parsed from req.body string`);
+      else if (typeof req.body === 'string' && req.body.length > 2) {
+        try {
+          body = JSON.parse(req.body);
+          log(`✅ Parsed from req.body string`);
+        } catch (e) {
+          log(`⚠️ Failed to parse req.body string: ${e.message}`);
+        }
       }
       // 5. Try standard body if it's already an object
       else if (typeof req.body === 'object' && req.body !== null && Object.keys(req.body).length > 0) {
         body = req.body;
         log(`✅ Using req.body object`);
       }
-      else {
-        log(`❌ No valid body found`);
+
+      // Final check
+      if (!body) {
+        log(`❌ No valid body found in any source`);
         return res.json({
           success: false,
           error: 'Empty request body',
           debug: {
-            hasBodyJson: !!req.bodyJson,
-            bodyRawLen: req.bodyRaw?.length,
-            bodyType: typeof req.body
+            rawBodyLen: req.bodyRaw?.length,
+            reqKeys: Object.keys(req)
           }
         }, 400, corsHeaders);
       }
+
     } catch (e) {
-      log(`❌ JSON parse error: ${e.message}`);
-      return res.json({
-        success: false,
-        error: 'Invalid JSON body: ' + e.message,
-        debug: {
-          error: e.message,
-          check: 'In catch block',
-          reqType: typeof req.body,
-          reqBody: typeof req.body === 'string' ? req.body.substring(0, 100) : 'Not a string',
-          bodyRaw: req.bodyRaw ? req.bodyRaw.substring(0, 100) : 'undefined',
-          bodyJson: req.bodyJson ? 'Present' : 'undefined'
-        }
-      }, 400, corsHeaders);
+      log(`❌ Body parsing fatal error: ${e.message}`);
+      return res.json({ success: false, error: 'Body parsing error: ' + e.message }, 400, corsHeaders);
     }
+
 
     // 🔒 Security Layer 2: Data Validation
     const validation = validateData(body);
