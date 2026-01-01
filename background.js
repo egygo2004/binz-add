@@ -15,9 +15,8 @@ const APPWRITE_CONFIG = {
   projectId: '693631c8001ac4fbc231',
   databaseId: '69363201001bc7a64088',
 
-  // ⚠️ FUNCTION URL - Replace YOUR_FUNCTION_ID after deploying
-  // Deploy functions/save-data first, then update this
-  functionId: 'YOUR_FUNCTION_ID', // <-- UPDATE THIS!
+  // ✅ Function ID - Deployed and Ready!
+  functionId: '6955cd8a003b317708c9',
 
   // Function endpoint (will be constructed from functionId)
   get functionUrl() {
